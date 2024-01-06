@@ -30,6 +30,7 @@ module Escapist::Scene
 
       rooms = [
         Room.new(0, 0, 1920, 1280),
+        # Room.new(0, 0, 4000, 2000),
         Room.new((1920 / 2 - 150).to_f32, -300 - 16, 300, 300)
       ]
 

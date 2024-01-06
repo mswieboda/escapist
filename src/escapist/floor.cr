@@ -28,15 +28,26 @@ module Escapist
     end
 
     def update_viewport(room : Room)
-      padding = 128
+      padding = 256
+
+      room_width_bigger = room.width + padding * 2 > view.size.x
+      room_height_bigger = room.height + padding * 2 > view.size.y
+
       cx = room.width / 2
+      cx = view.size.x / 2 - padding if cx > view.size.x / 2 - padding
+
       cy = room.height / 2
-      cx = view.size.x / 2 - padding if cx > view.size.x / 2
-      cy = view.size.y / 2 - padding if cy > view.size.y / 2
-      cx = player.x + player.size / 2 if room.width > view.size.x && player.x + player.size / 2 > cx
-      cy = player.y + player.size / 2 if room.height > view.size.y && player.y + player.size / 2 > cy
-      cx = view.size.x + padding if cx > view.size.x + padding
-      cy = view.size.y + padding if cy > view.size.y + padding
+      cy = view.size.y / 2 - padding if cy > view.size.y / 2 - padding
+
+      if room_width_bigger
+        cx = player.x + player.size / 2 if player.x + player.size / 2 > cx
+        cx = room.width - view.size.x / 2 + padding if cx > room.width - view.size.x / 2 + padding
+      end
+
+      if room_height_bigger
+        cy = player.y + player.size / 2 if player.y + player.size / 2 > cy
+        cy = room.height - view.size.y / 2 + padding if cy > room.height - view.size.y / 2 + padding
+      end
 
       view.center(cx, cy)
     end
