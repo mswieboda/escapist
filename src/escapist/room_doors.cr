@@ -72,10 +72,11 @@ module Escapist
       cx = !horz && far ? room_width : 0
       cy = horz && far ? room_height : 0
 
+      # TODO: fix the doors with mutiples on same wall
       if horz
-        cx = room_width / (1 + doors.size) * (index + 1)
+        cx = room_width / 2 #((1 + doors.size) * (index + 1))
       else
-        cy = room_height / (1 + doors.size) * (index + 1)
+        cy = room_height / 2 #((1 + doors.size) * (index + 1))
       end
 
       {cx.to_f32, cy.to_f32}
@@ -128,7 +129,7 @@ module Escapist
       elsif index = left.index(room_key)
         cx, cy = door_center(left, index, room_width, room_height, horz: false)
 
-        player.jump_to(cx, cy + player.size)
+        player.jump_to(cx, cy - player_half_size)
       elsif index = bottom.index(room_key)
         cx, cy = door_center(bottom, index, room_width, room_height, far: true)
 
@@ -136,39 +137,31 @@ module Escapist
       elsif index = right.index(room_key)
         cx, cy = door_center(right, index, room_width, room_height, horz: false, far: true)
 
-        player.jump_to(cx, cy - player.size)
+        player.jump_to(cx - player.size, cy - player_half_size)
       end
     end
 
     def draw(window, room_width, room_height)
       top.each_with_index do |door, index|
-        x = room_width / (1 + top.size) * (index + 1)
-
-        draw_door(window, x, 0, horz: true)
+        draw_door(window, top, index, room_width, room_height)
       end
 
-      left.each do |door|
-        y = room_height / (1 + left.size)
-
-        draw_door(window, 0, y, horz: false)
+      left.each_with_index do |door, index|
+        draw_door(window, left, index, room_width, room_height, horz: false)
       end
 
-      bottom.each do |door|
-        x = room_width / (1 + bottom.size)
-        y = room_height
-
-        draw_door(window, x, y, horz: true)
+      bottom.each_with_index do |door, index|
+        draw_door(window, bottom, index, room_width, room_height, far: true)
       end
 
-      right.each do |door|
-        x = room_width
-        y = room_height / (1 + right.size)
-
-        draw_door(window, x, y, horz: false)
+      right.each_with_index do |door, index|
+        draw_door(window, right, index, room_width, room_height, horz: false, far: true)
       end
     end
 
-    def draw_door(window, x, y, horz = true)
+    def draw_door(window, doors, index, room_width, room_height, horz = true, far = false)
+      cx, cy = door_center(top, index, room_width, room_height, horz, far)
+
       width = horz ? Width : Depth
       height = horz ? Depth : Width
 
@@ -177,7 +170,7 @@ module Escapist
       rect.fill_color = SF::Color::Red
       rect.outline_color = SF::Color.new(99, 99, 99)
       rect.outline_thickness = OutlineThickness
-      rect.position = {x - width / 2, y - height / 2}
+      rect.position = {cx - width / 2, cy - height / 2}
 
       window.draw(rect)
     end
