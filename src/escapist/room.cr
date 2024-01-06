@@ -28,7 +28,18 @@ module Escapist
     end
 
     def update_viewport
-      view.center(player.x + player.size / 2, player.y + player.size / 2)
+      padding = 128
+      cx = width / 2
+      cy = height / 2
+
+      cx = view.size.x / 2 - padding if cx > view.size.x / 2
+      cy = view.size.y / 2 - padding if cy > view.size.y / 2
+      cx = player.x + player.size / 2 if player.x + player.size / 2 > cx
+      cy = player.y + player.size / 2 if player.y + player.size / 2 > cy
+      cx = view.size.x + padding if cx > view.size.x + padding
+      cy = view.size.y + padding if cy > view.size.y + padding
+
+      view.center(cx, cy)
     end
 
     def draw(window : SF::RenderWindow)
