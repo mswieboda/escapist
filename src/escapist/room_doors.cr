@@ -19,49 +19,7 @@ module Escapist
     end
 
     def update(player : Player, keys : Keys, room_width, room_height)
-      check_doors(
-        player,
-        room_width,
-        room_height,
-        top,
-        "top",
-        keys.just_pressed?(Keys::W)
-      )
-
-      check_doors(
-        player,
-        room_width,
-        room_height,
-        left,
-        "left",
-        keys.just_pressed?(Keys::A),
-        horz: false
-      )
-
-      check_doors(
-        player,
-        room_width,
-        room_height,
-        bottom,
-        "bottom",
-        keys.just_pressed?(Keys::S),
-        far: true
-      )
-
-      check_doors(
-        player,
-        room_width,
-        room_height,
-        right,
-        "right",
-        keys.just_pressed?(Keys::D),
-        horz: false,
-        far: true
-      )
-    end
-
-    def through_door(name, index, door)
-      @entered = door
+      check_all_doors(player, keys, room_width, room_height)
     end
 
     def clear_entered
@@ -71,24 +29,41 @@ module Escapist
     def door_center(doors, index, room_width, room_height, horz = true, far = false)
       cx = !horz && far ? room_width : 0
       cy = horz && far ? room_height : 0
+      spacing = (horz ? room_width : room_height) / (doors.size * 2)
 
-      # TODO: fix the doors with mutiples on same wall
       if horz
-        cx = room_width / 2 #((1 + doors.size) * (index + 1))
+        cx = spacing + room_width / doors.size * index
       else
-        cy = room_height / 2 #((1 + doors.size) * (index + 1))
+        cy = spacing + room_height / doors.size * index
       end
 
       {cx.to_f32, cy.to_f32}
     end
 
-    def check_doors(player, room_width, room_height, doors, name : String, key_pressed, horz = true, far = false)
-      if !@entered && key_pressed
+    def check_all_doors(player : Player, keys : Keys, room_width, room_height)
+      [
+        { top, Keys::W, true, false },
+        { left, Keys::A, false, false },
+        { bottom, Keys::S, true, true },
+        { right, Keys::D, false, true }
+      ].each do |config|
+        break if check_doors(
+          player,
+          keys,
+          room_width,
+          room_height,
+          *config
+        )
+      end
+    end
+
+    def check_doors(player, keys, room_width, room_height, doors, key, horz = true, far = false)
+      if !@entered && keys.pressed?(key)
         doors.each_with_index do |door, index|
           cx, cy = door_center(doors, index, room_width, room_height, horz, far)
 
           if in_door?(player, cx, cy, horz, far)
-            return through_door(name, index, door)
+            return @entered = door
           end
         end
       end
@@ -160,7 +135,7 @@ module Escapist
     end
 
     def draw_door(window, doors, index, room_width, room_height, horz = true, far = false)
-      cx, cy = door_center(top, index, room_width, room_height, horz, far)
+      cx, cy = door_center(doors, index, room_width, room_height, horz, far)
 
       width = horz ? Width : Depth
       height = horz ? Depth : Width

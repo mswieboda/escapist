@@ -30,7 +30,7 @@ module Escapist::Scene
 
 
       rooms = {
-        :first => Room.new(15, 5, RoomDoors.new(top: [:TL, :TR], left: [:L], bottom: [:B], right: [:R])),
+        :first => Room.new(15, 5, RoomDoors.new(top: [:TL, :TM, :TR], left: [:LT, :LB], bottom: [:B], right: [:R])),
         :B => Room.new(5, 5, RoomDoors.new(top: [:first])),
         :TL => Room.new(15, 3, RoomDoors.new(bottom: [:first], right: [:TR])),
         :TR => Room.new(5, 3, RoomDoors.new(bottom: [:first], left: [:TL]))
