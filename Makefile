@@ -1,4 +1,4 @@
-NAME=game_sf_template
+NAME=escapist
 SHELL = /bin/sh
 CC = crystal build
 BUILD_DIR = build
@@ -32,7 +32,7 @@ release: clean ${OUT_FILE}.o
 
 winpack: clean ${OUT_FILE}.o
 ifeq ($(OS),Windows_NT)
-	copy game_sf_template.exe ${BUILD_DIR}
+	copy escapist.exe ${BUILD_DIR}
 	rename ${BUILD_DIR}\\${NAME}.o main.o
 	copy "${SFML_DLL_DIR}\\*.dll" ${BUILD_DIR}
 	xcopy /E assets ${BUILD_DIR}\\assets\\

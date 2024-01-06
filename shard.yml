@@ -1,18 +1,18 @@
-name: game_sf_template
+name: escapist
 version: 0.1.1
 
 authors:
   - Matt Swieboda <mswieboda@users.noreply.github.com>
 
 targets:
-  game_sf_template:
-    main: src/game_sf_template.cr
+  escapist:
+    main: src/escapist.cr
 
 dependencies:
   game_sf:
     github: mswieboda/game_sf
     version: 0.14.0
 
-crystal: '>= 1.8.2'
+crystal: '>= 1.10.1'
 
 license: MIT

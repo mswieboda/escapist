@@ -25,4 +25,4 @@ if ! [[ -f $FRAMEWORKS/$SFML_EXTLIB ]]; then
   echo "installed SFML external dependencies to $FRAMEWORKS"
 fi
 
-$dir/game_sf_template.o
+$dir/escapist.o

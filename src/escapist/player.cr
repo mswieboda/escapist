@@ -1,4 +1,4 @@
-module GameSFTemplate
+module Escapist
   class Player
     getter x : Int32
     getter y : Int32

@@ -1,6 +1,6 @@
 require "./font"
 
-module GameSFTemplate
+module Escapist
   class HUD
     getter text
 
