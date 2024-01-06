@@ -58,6 +58,11 @@ module Escapist
       @y += dy
     end
 
+    def jump_to(x, y)
+      @x = x
+      @y = y
+    end
+
     def size
       Size
     end

@@ -7,6 +7,9 @@ module Escapist
     getter tile_rows : Int32
     getter doors : RoomDoors
 
+    delegate entered, to: @doors
+    delegate clear_entered, to: @doors
+
     OutlineThickness = 8
     TileSize = 128
 
@@ -28,6 +31,10 @@ module Escapist
       if player = p
         doors.update(player, keys, width, height)
       end
+    end
+
+    def spawn_player(player, room_key)
+      doors.spawn_player(player, room_key, width, height)
     end
 
     def draw(window : SF::RenderWindow, p : Player | Nil)

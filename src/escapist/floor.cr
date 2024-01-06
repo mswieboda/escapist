@@ -3,6 +3,7 @@ require "./player"
 module Escapist
   class Floor
     @room : Room | Nil
+    @room_key : Symbol
 
     getter view : View
     getter player
@@ -12,14 +13,21 @@ module Escapist
       @view = view
       @player = Player.new(x: 0, y: 0)
       @rooms = rooms
-      @room = rooms[first_room]
+      @room_key = first_room
+      @previous_room_key = first_room
+      @room = rooms[@room_key]
     end
 
     def update(frame_time, keys : Keys)
       if room = @room
         player.update(frame_time, keys, room.width, room.height)
-        room.update(player, keys)
         update_viewport(room)
+        room.update(player, keys)
+
+        if entered = room.entered
+          switch_room(entered)
+          room.clear_entered
+        end
       end
     end
 
@@ -51,6 +59,17 @@ module Escapist
     def draw(window : SF::RenderWindow)
       if room = @room
         room.draw(window, player)
+      end
+    end
+
+    def switch_room(room_key)
+      if rooms.has_key?(room_key)
+        @room = rooms[room_key]
+
+        if room = @room
+          room.spawn_player(player, @room_key)
+          @room_key = room_key
+        end
       end
     end
   end
