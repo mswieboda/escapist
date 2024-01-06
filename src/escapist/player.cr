@@ -22,15 +22,22 @@ module Escapist
       dx = 0
       dy = 0
 
-      dy -= Speed * frame_time if keys.pressed?([Keys::W])
-      dx -= Speed * frame_time if keys.pressed?([Keys::A])
-      dy += Speed * frame_time if keys.pressed?([Keys::S])
-      dx += Speed * frame_time if keys.pressed?([Keys::D])
+      dy -= 1 if keys.pressed?([Keys::W])
+      dx -= 1 if keys.pressed?([Keys::A])
+      dy += 1 if keys.pressed?([Keys::S])
+      dx += 1 if keys.pressed?([Keys::D])
+
+      return if dx == 0 && dy == 0
+
+      speed = dx != 0 && dy != 0 ? Speed / 1.4142 : Speed
+
+      dx *= (speed * frame_time).to_f32
+      dy *= (speed * frame_time).to_f32
 
       dx = 0 if x + dx < 0 || x + dx + size > room_width
       dy = 0 if y + dy < 0 || y + dy + size > room_height
 
-      move(dx, dy) if dx != 0 || dy != 0
+      move(dx, dy)
     end
 
     def draw(window : SF::RenderWindow, dx, dy)
