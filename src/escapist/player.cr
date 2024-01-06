@@ -16,11 +16,11 @@ module Escapist
       @y = y
     end
 
-    def update(_frame_time, keys : Keys)
-      update_movement(keys)
+    def update(_frame_time, keys : Keys, room_width, room_height)
+      update_movement(keys, room_width, room_height)
     end
 
-    def update_movement(keys : Keys)
+    def update_movement(keys : Keys, room_width, room_height)
       dx = 0
       dy = 0
 
@@ -30,8 +30,8 @@ module Escapist
       dx += Speed if keys.pressed?([Keys::D])
 
       # TODO: use room sizing in these checks instead of viewport
-      dx = 0 if x + dx < 0 || x + dx + Size > @view.viewport.width
-      dy = 0 if y + dy < 0 || y + dy + Size > @view.viewport.height
+      dx = 0 if x + dx < 0 || x + dx + Size > room_width
+      dy = 0 if y + dy < 0 || y + dy + Size > room_height
 
       move(dx, dy) if dx != 0 || dy != 0
     end
@@ -56,8 +56,6 @@ module Escapist
     def move(dx : Int32, dy : Int32)
       @x += dx
       @y += dy
-
-      view.center(@x, @y)
     end
   end
 end
