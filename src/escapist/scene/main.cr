@@ -1,11 +1,12 @@
 require "../hud"
+require "../floor"
 require "../room"
 
 module Escapist::Scene
   class Main < GSF::Scene
     getter view : View
     getter hud
-    getter room
+    getter floor
 
     TopBorder = 64
     BottomBorder = 64
@@ -26,8 +27,13 @@ module Escapist::Scene
       )
 
       @hud = HUD.new
-      @room = Room.new(view, 1920, 1280)
-      # @room = Room.new(view, 5000, 3000)
+
+      rooms = [
+        Room.new(0, 0, 1920, 1280),
+        Room.new((1920 / 2 - 150).to_f32, -300 - 16, 300, 300)
+      ]
+
+      @floor = Floor.new(view, rooms)
     end
 
     def width
@@ -44,14 +50,14 @@ module Escapist::Scene
         return
       end
 
-      room.update(frame_time, keys)
+      floor.update(frame_time, keys)
       hud.update(frame_time)
     end
 
     def draw(window)
       view.set_current
 
-      room.draw(window)
+      floor.draw(window)
 
       view.set_default_current
 

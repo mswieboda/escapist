@@ -2,49 +2,31 @@ require "./player"
 
 module Escapist
   class Room
-    getter view : View
+    getter x : Float32 | Int32
+    getter y : Float32 | Int32
     getter width : Int32
-    getter x : Float32
-    getter y : Float32
     getter height : Int32
-    getter player
 
-    def initialize(view, width, height)
-      @view = view
-      @x = 0
-      @y = 0
+    OutlineThickness = 8
+
+    def initialize(x, y, width, height)
+      @player = nil
+      @x = x
+      @y = y
       @width = width
       @height = height
-
-      @player = Player.new(x: 0, y: 0)
-
-      update_viewport
     end
 
     def update(frame_time, keys : Keys)
-      player.update(frame_time, keys, width, height)
 
-      update_viewport
     end
 
-    def update_viewport
-      padding = 128
-      cx = width / 2
-      cy = height / 2
-
-      cx = view.size.x / 2 - padding if cx > view.size.x / 2
-      cy = view.size.y / 2 - padding if cy > view.size.y / 2
-      cx = player.x + player.size / 2 if width > view.size.x && player.x + player.size / 2 > cx
-      cy = player.y + player.size / 2 if height > view.size.y && player.y + player.size / 2 > cy
-      cx = view.size.x + padding if cx > view.size.x + padding
-      cy = view.size.y + padding if cy > view.size.y + padding
-
-      view.center(cx, cy)
-    end
-
-    def draw(window : SF::RenderWindow)
-      player.draw(window, x, y)
+    def draw(window : SF::RenderWindow, p : Player | Nil)
       draw_border(window)
+
+      if player = p
+        player.draw(window)
+      end
     end
 
     def draw_border(window)
@@ -52,10 +34,14 @@ module Escapist
       rect.size = SF.vector2f(width, height)
       rect.fill_color = SF::Color::Transparent
       rect.outline_color = SF::Color.new(99, 99, 99)
-      rect.outline_thickness = 10
+      rect.outline_thickness = OutlineThickness
       rect.position = {x, y}
 
       window.draw(rect)
+    end
+
+    def player=(player : Player)
+      @player = player
     end
   end
 end

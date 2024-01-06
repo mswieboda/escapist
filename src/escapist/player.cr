@@ -40,14 +40,14 @@ module Escapist
       move(dx, dy)
     end
 
-    def draw(window : SF::RenderWindow, dx, dy)
+    def draw(window : SF::RenderWindow)
       circle = SF::CircleShape.new(Radius - OutlineThickness)
       circle.fill_color = SF::Color::Transparent
       circle.outline_color = SF::Color::Red
       circle.outline_thickness = OutlineThickness
       circle.position = {
-        dx + x + OutlineThickness,
-        dy + y + OutlineThickness
+        x + OutlineThickness,
+        y + OutlineThickness
       }
 
       window.draw(circle)
