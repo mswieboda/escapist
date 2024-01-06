@@ -1,5 +1,6 @@
 module Escapist
   class Player
+    getter view : View
     getter x : Int32
     getter y : Int32
     getter animations
@@ -9,29 +10,30 @@ module Escapist
     Size = Radius * 2
     OutlineThickness = 4
 
-    def initialize(x = 0, y = 0)
+    def initialize(view, x = 0, y = 0)
+      @view = view
       @x = x
       @y = y
     end
 
     def update(_frame_time, keys : Keys)
-      # animations.update(frame_time)
-
       update_movement(keys)
     end
 
     def update_movement(keys : Keys)
+      dx = 0
       dy = 0
 
-      if keys.pressed?(Keys::Up)
-        dy -= Speed
-      elsif keys.pressed?(Keys::Down)
-        dy += Speed
-      end
+      dy -= Speed if keys.pressed?([Keys::W])
+      dx -= Speed if keys.pressed?([Keys::A])
+      dy += Speed if keys.pressed?([Keys::S])
+      dx += Speed if keys.pressed?([Keys::D])
 
-      if y + dy > 0 && y + dy + Size < GSF::Screen.height
-        move(0, dy)
-      end
+      # TODO: use room sizing in these checks instead of viewport
+      dx = 0 if x + dx < 0 || x + dx + Size > @view.viewport.width
+      dy = 0 if y + dy < 0 || y + dy + Size > @view.viewport.height
+
+      move(dx, dy) if dx != 0 || dy != 0
     end
 
     def draw(window : SF::RenderWindow)
@@ -43,13 +45,19 @@ module Escapist
       circle.fill_color = SF::Color::Transparent
       circle.outline_color = SF::Color::Red
       circle.outline_thickness = OutlineThickness
-      circle.position = {x + OutlineThickness, y + OutlineThickness}
+      circle.position = {
+        view.viewport.left + x + OutlineThickness,
+        view.viewport.top + y + OutlineThickness
+      }
+
       circle
     end
 
     def move(dx : Int32, dy : Int32)
       @x += dx
       @y += dy
+
+      view.center(@x, @y)
     end
   end
 end

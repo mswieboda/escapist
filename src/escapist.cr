@@ -8,6 +8,7 @@ module Escapist
   alias Joysticks = GSF::Joysticks
   alias Screen = GSF::Screen
   alias Timer = GSF::Timer
+  alias View = GSF::View
 
   Game.new.run
 end

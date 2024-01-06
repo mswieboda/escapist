@@ -9,7 +9,7 @@ module Escapist
     TextColor = SF::Color::Green
 
     def initialize
-      @text = SF::Text.new("", Font.default, 24)
+      @text = SF::Text.new("heath: 100%", Font.default, 24)
       @text.fill_color = TextColor
       @text.position = {Margin, Margin}
     end
