@@ -5,35 +5,17 @@ module Escapist
     getter animations
 
     Speed = 15
-    Sheet = "./assets/player.png"
+    Radius = 64
+    Size = Radius * 2
+    OutlineThickness = 4
 
     def initialize(x = 0, y = 0)
-      # sprite size
-      size = 128
       @x = x
       @y = y
-
-      # init animations
-      fps = 60
-
-      # idle
-      idle = GSF::Animation.new((fps / 3).to_i, loops: false)
-      idle.add(Sheet, 0, 0, size, size)
-
-      # fire animation
-      fire_frames = 3
-      fire = GSF::Animation.new((fps / 25).to_i, loops: false)
-
-      fire_frames.times do |i|
-        fire.add(Sheet, i * size, 0, size, size)
-      end
-
-      @animations = GSF::Animations.new(:idle, idle)
-      animations.add(:fire, fire)
     end
 
-    def update(frame_time, keys : Keys)
-      animations.update(frame_time)
+    def update(_frame_time, keys : Keys)
+      # animations.update(frame_time)
 
       update_movement(keys)
     end
@@ -47,13 +29,22 @@ module Escapist
         dy += Speed
       end
 
-      if y + dy > 0 && y + dy < GSF::Screen.height
+      if y + dy > 0 && y + dy + Size < GSF::Screen.height
         move(0, dy)
       end
     end
 
     def draw(window : SF::RenderWindow)
-      animations.draw(window, x, y)
+      window.draw(circle)
+    end
+
+    def circle
+      circle = SF::CircleShape.new(Radius - OutlineThickness)
+      circle.fill_color = SF::Color::Transparent
+      circle.outline_color = SF::Color::Red
+      circle.outline_thickness = OutlineThickness
+      circle.position = {x + OutlineThickness, y + OutlineThickness}
+      circle
     end
 
     def move(dx : Int32, dy : Int32)

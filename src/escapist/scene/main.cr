@@ -14,7 +14,7 @@ module Escapist::Scene
 
       view.zoom(1 / Screen.scaling_factor)
 
-      @player = Player.new(x: 300, y: 300)
+      @player = Player.new(x: 128, y: 256)
       @hud = HUD.new
     end
 
