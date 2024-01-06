@@ -28,13 +28,13 @@ module Escapist::Scene
 
       @hud = HUD.new
 
-      rooms = [
-        Room.new(0, 0, 1920, 1280),
-        # Room.new(0, 0, 4000, 2000),
-        Room.new((1920 / 2 - 150).to_f32, -300 - 16, 300, 300)
-      ]
 
-      @floor = Floor.new(view, rooms)
+      rooms = {
+        :first => Room.new(15, 5, RoomDoors.new(top: [:TL, :TR], left: [:L], bottom: [:B], right: [:R])),
+        :B => Room.new(5, 5, RoomDoors.new(top: [:first]))
+      }
+
+      @floor = Floor.new(view, rooms, :first)
     end
 
     def width

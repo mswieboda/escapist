@@ -6,23 +6,19 @@ module Escapist
 
     getter view : View
     getter player
-    getter rooms : Array(Room)
+    getter rooms : Hash(Symbol, Room)
 
-    def initialize(view, rooms = [] of Room)
+    def initialize(view, rooms, first_room : Symbol)
       @view = view
       @player = Player.new(x: 0, y: 0)
       @rooms = rooms
-      @room = rooms.first
-
-      if room = @room
-        room.player = @player
-      end
+      @room = rooms[first_room]
     end
 
     def update(frame_time, keys : Keys)
       if room = @room
         player.update(frame_time, keys, room.width, room.height)
-        room.update(frame_time, keys)
+        room.update(player, keys)
         update_viewport(room)
       end
     end
@@ -53,8 +49,8 @@ module Escapist
     end
 
     def draw(window : SF::RenderWindow)
-      rooms.each do |room|
-        room.draw(window, @room ? player : nil)
+      if room = @room
+        room.draw(window, player)
       end
     end
   end

@@ -1,32 +1,42 @@
 require "./player"
+require "./room_doors"
 
 module Escapist
   class Room
-    getter x : Float32 | Int32
-    getter y : Float32 | Int32
-    getter width : Int32
-    getter height : Int32
+    getter tile_columns : Int32
+    getter tile_rows : Int32
+    getter doors : RoomDoors
 
     OutlineThickness = 8
+    TileSize = 128
 
-    def initialize(x, y, width, height)
-      @player = nil
-      @x = x
-      @y = y
-      @width = width
-      @height = height
+    def initialize(tile_columns, tile_rows, doors = RoomDoors.new)
+      @tile_columns = tile_columns
+      @tile_rows = tile_rows
+      @doors = doors
     end
 
-    def update(frame_time, keys : Keys)
+    def width
+      tile_columns * TileSize
+    end
 
+    def height
+      tile_rows * TileSize
+    end
+
+    def update(p : Player, keys : Keys)
+      if player = p
+        doors.update(player, keys, width, height)
+      end
     end
 
     def draw(window : SF::RenderWindow, p : Player | Nil)
-      draw_border(window)
-
       if player = p
         player.draw(window)
       end
+
+      draw_border(window)
+      doors.draw(window, width, height)
     end
 
     def draw_border(window)
@@ -35,13 +45,8 @@ module Escapist
       rect.fill_color = SF::Color::Transparent
       rect.outline_color = SF::Color.new(99, 99, 99)
       rect.outline_thickness = OutlineThickness
-      rect.position = {x, y}
 
       window.draw(rect)
-    end
-
-    def player=(player : Player)
-      @player = player
     end
   end
 end
