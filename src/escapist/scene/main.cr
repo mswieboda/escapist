@@ -26,8 +26,8 @@ module Escapist::Scene
       )
 
       @hud = HUD.new
-      # @room = Room.new(view, 1920, 1280)
-      @room = Room.new(view, 5000, 3000)
+      @room = Room.new(view, 1920, 1280)
+      # @room = Room.new(view, 5000, 3000)
     end
 
     def width

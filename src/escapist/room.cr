@@ -34,8 +34,8 @@ module Escapist
 
       cx = view.size.x / 2 - padding if cx > view.size.x / 2
       cy = view.size.y / 2 - padding if cy > view.size.y / 2
-      cx = player.x + player.size / 2 if player.x + player.size / 2 > cx
-      cy = player.y + player.size / 2 if player.y + player.size / 2 > cy
+      cx = player.x + player.size / 2 if width > view.size.x && player.x + player.size / 2 > cx
+      cy = player.y + player.size / 2 if height > view.size.y && player.y + player.size / 2 > cy
       cx = view.size.x + padding if cx > view.size.x + padding
       cy = view.size.y + padding if cy > view.size.y + padding
 
