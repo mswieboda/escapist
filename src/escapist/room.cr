@@ -16,17 +16,32 @@ module Escapist
       @width = width
       @height = height
 
-      @player = Player.new(view: view, x: 0, y: 0)
+      @player = Player.new(x: 0, y: 0)
 
       view.center(width / 2, height / 2)
     end
 
     def update(frame_time, keys : Keys)
       player.update(frame_time, keys, width, height)
+
+      update_viewport(frame_time)
+    end
+
+    def update_viewport(frame_time)
+      padding = 512
+      dx = 0
+      dy = 0
+
+      dx = -1 if player.x < view.center.x - view.size.x / 2
+      dx = 1 if player.x + player.size > view.center.x + view.size.x / 2
+      dy = -1 if player.y < view.center.y - view.size.y / 2
+      dy = 1 if player.y + player.size > view.center.y + view.size.y / 2
+
+      view.center(view.center.x + dx * padding, view.center.y + dy * padding)
     end
 
     def draw(window : SF::RenderWindow)
-      player.draw(window)
+      player.draw(window, x, y)
       draw_border(window)
     end
 
