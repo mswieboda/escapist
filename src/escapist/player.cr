@@ -77,10 +77,7 @@ module Escapist
       circle.fill_color = Color
       circle.outline_color = OutlineColor
       circle.outline_thickness = OutlineThickness
-      circle.position = {
-        x + OutlineThickness,
-        y + OutlineThickness
-      }
+      circle.position = {x, y}
 
       window.draw(circle)
     end
