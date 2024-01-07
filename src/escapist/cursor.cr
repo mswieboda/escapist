@@ -20,7 +20,6 @@ module Escapist
     OutlineThickness = 4
 
     JumpSound = SF::SoundBuffer.from_file("./assets/cursor.wav")
-    JumpSoundVolume = 66
     JumpSoundPitchVariation = 0.13
 
     def initialize(col = 0, row = 0)
@@ -32,7 +31,6 @@ module Escapist
       @last_cursors = [] of LastCursor
 
       @jump_sound = SF::Sound.new(JumpSound)
-      jump_sound.volume = JumpSoundVolume
 
       @moved_timer = Timer.new(MovedDuration)
       @moved_timer.start
