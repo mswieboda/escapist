@@ -44,17 +44,7 @@ module Escapist
     end
 
     def update_movement(frame_time, keys : Keys, room_width, room_height)
-      d_col = 0
-      d_row = 0
-
-      d_row -= 1 if keys.pressed?([Keys::W])
-      d_col -= 1 if keys.pressed?([Keys::A])
-      d_row += 1 if keys.pressed?([Keys::S])
-      d_col += 1 if keys.pressed?([Keys::D])
-
-      # check room coords
-      d_col = 0 if col + d_col < 0 || (col + d_col + 1) * size > room_width
-      d_row = 0 if row + d_row < 0 || (row + d_row + 1) * size > room_height
+      d_col, d_row = get_d_col_row(keys, room_width, room_height)
 
       if d_col == 0 && d_row == 0
         @just_moved = false
@@ -72,6 +62,22 @@ module Escapist
       last_cursors << LastCursor.new(col, row)
 
       jump_to(col + d_col, row + d_row)
+    end
+
+    def get_d_col_row(keys, room_width, room_height)
+      d_col = 0
+      d_row = 0
+
+      d_row -= 1 if keys.pressed?([Keys::W])
+      d_col -= 1 if keys.pressed?([Keys::A])
+      d_row += 1 if keys.pressed?([Keys::S])
+      d_col += 1 if keys.pressed?([Keys::D])
+
+      # check room coords
+      d_col = 0 if col + d_col < 0 || (col + d_col + 1) * size > room_width
+      d_row = 0 if row + d_row < 0 || (row + d_row + 1) * size > room_height
+
+      {d_col, d_row}
     end
 
     def update_last_cursors
