@@ -30,8 +30,33 @@ module Escapist::Scene
 
       @hud = HUD.new
 
+      blocks = {
+        5 => {
+          13 => :block,
+          18 => :block
+        },
+        13 => {
+          3 => :block
+        },
+        7 => {
+          7 => :block,
+          8 => :block,
+          9 => :block
+        },
+        8 => {
+          7 => :block,
+          8 => :block,
+          9 => :block
+        },
+        9 => {
+          7 => :block,
+          8 => :block,
+          9 => :block
+        }
+      }
+
       rooms = {
-        :first => Room.new(RoomSection * 3, RoomSection * 2, RoomDoors.new(top: [:TL, :TR], left: [:LT, :LB], bottom: [:B, nil], right: [:R]), blocks: [Block.new(3, 5), Block.new(1, 1)]),
+        :first => Room.new(RoomSection * 3, RoomSection * 2, RoomDoors.new(top: [:TL, :TR], left: [:LT, :LB], bottom: [:B, nil], right: [:R]), blocks),
         :B => Room.new(RoomSection, RoomSection, RoomDoors.new(top: [:first])),
         :TL => Room.new(RoomSection, RoomSection, RoomDoors.new(bottom: [:first], right: [:TR])),
         :TR => Room.new(RoomSection, RoomSection, RoomDoors.new(bottom: [:first], left: [:TL]))

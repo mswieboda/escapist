@@ -19,11 +19,21 @@ module Escapist
     TileGridColor = SF::Color.new(13, 13, 13)
     TileGridOutlineThickness = 2
 
-    def initialize(tile_columns, tile_rows, doors = RoomDoors.new, blocks = [] of Block)
+    def initialize(tile_columns, tile_rows, doors = RoomDoors.new, blocks = Hash(Int32, Hash(Int32, Symbol)).new)
       @tile_columns = tile_columns
       @tile_rows = tile_rows
       @doors = doors
-      @blocks = blocks
+      @blocks = [] of Block
+
+      blocks.each do |col, rows|
+        next if col > tile_columns
+
+        rows.each do |row, _block_type|
+          next if row > tile_rows
+
+          @blocks << Block.new(col, row)
+        end
+      end
     end
 
     def width
