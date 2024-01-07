@@ -145,8 +145,8 @@ module Escapist
 
       rect = SF::RectangleShape.new
       rect.size = SF.vector2f(width, height)
-      rect.fill_color = SF::Color::Red
-      rect.outline_color = SF::Color.new(99, 99, 99)
+      rect.fill_color = Color
+      rect.outline_color = OutlineColor
       rect.outline_thickness = OutlineThickness
       rect.position = {cx - width / 2, cy - height / 2}
 

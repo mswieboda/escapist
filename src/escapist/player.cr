@@ -4,9 +4,12 @@ module Escapist
     getter y : Float32 | Int32
     getter animations
 
-    Speed = 512
+    Speed = 640
+    SprintSpeed = 1280
     Radius = 64
     Size = Radius * 2
+    Color = SF::Color.new(153, 0, 0, 30)
+    OutlineColor = SF::Color.new(153, 0, 0)
     OutlineThickness = 4
 
     def initialize(x = 0, y = 0)
@@ -29,14 +32,15 @@ module Escapist
 
       return if dx == 0 && dy == 0
 
-      move_with_speed(dx, dy, room_width, room_height, frame_time)
+      move_with_speed(frame_time, keys, room_width, room_height, dx, dy)
     end
 
-    def move_with_speed(dx, dy, room_width, room_height, frame_time)
-      speed = dx != 0 && dy != 0 ? Speed / 1.4142 : Speed
+    def move_with_speed(frame_time, keys : Keys, room_width, room_height, dx, dy)
+      speed = keys.pressed?([Keys::LShift, Keys::RShift]) ? SprintSpeed : Speed
+      directional_speed = dx != 0 && dy != 0 ? speed / 1.4142 : speed
 
-      dx *= (speed * frame_time).to_f32
-      dy *= (speed * frame_time).to_f32
+      dx *= (directional_speed * frame_time).to_f32
+      dy *= (directional_speed * frame_time).to_f32
 
       dx = 0 if x + dx < 0 || x + dx + size > room_width
       dy = 0 if y + dy < 0 || y + dy + size > room_height
@@ -46,8 +50,8 @@ module Escapist
 
     def draw(window : SF::RenderWindow)
       circle = SF::CircleShape.new(Radius - OutlineThickness)
-      circle.fill_color = SF::Color::Transparent
-      circle.outline_color = SF::Color::Red
+      circle.fill_color = Color
+      circle.outline_color = OutlineColor
       circle.outline_thickness = OutlineThickness
       circle.position = {
         x + OutlineThickness,
