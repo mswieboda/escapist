@@ -6,9 +6,9 @@ shards:
 
   crsfml:
     git: https://github.com/oprypin/crsfml.git
-    version: 2.5.2
+    version: 2.5.3
 
   game_sf:
     git: https://github.com/mswieboda/game_sf.git
-    version: 0.14.0
+    version: 0.16.0
 

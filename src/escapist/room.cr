@@ -31,7 +31,7 @@ module Escapist
       tile_rows * TileSize
     end
 
-    def update(p : Player, keys : Keys)
+    def update(p : Player | Nil, keys : Keys)
       if player = p
         doors.update(player, keys, width, height)
       end
