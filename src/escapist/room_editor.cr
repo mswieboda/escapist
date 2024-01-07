@@ -5,13 +5,20 @@ module Escapist
     getter view : View
     getter cursor
     getter room : Room
+    getter place_sound
 
     Padding = 56
+
+    PlaceSound = SF::SoundBuffer.from_file("./assets/cursor.wav")
+    PlaceSoundPitchDecrease = 0.33
+    PlaceSoundPitchVariation = 0.13
 
     def initialize(view, room)
       @view = view
       @room = room
       @cursor = Cursor.new(col: 0, row: 0)
+
+      @place_sound = SF::Sound.new(PlaceSound)
     end
 
     def update(frame_time, keys : Keys)

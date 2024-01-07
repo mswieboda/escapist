@@ -9,8 +9,8 @@ module Escapist
   end
 
   class Cursor
-    getter col : Float32 | Int32
-    getter row : Float32 | Int32
+    getter col : Int32
+    getter row : Int32
     getter? just_moved
     getter move_delay_timer : Timer
     getter move_repeat_delay_timer : Timer
@@ -31,6 +31,7 @@ module Escapist
     OutlineThickness = 4
 
     JumpSound = SF::SoundBuffer.from_file("./assets/cursor.wav")
+    JumpSoundVolume = 33
     JumpSoundPitchVariation = 0.13
 
     def initialize(col = 0, row = 0)
@@ -42,6 +43,7 @@ module Escapist
       @last_cursors = [] of LastCursor
 
       @jump_sound = SF::Sound.new(JumpSound)
+      @jump_sound.volume = JumpSoundVolume
 
       @moved_timer = Timer.new(MovedDuration)
       @moved_timer.start
