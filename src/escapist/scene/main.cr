@@ -11,6 +11,7 @@ module Escapist::Scene
     TopBorder = 64
     BottomBorder = 64
     HorizontalBorder = 16
+    RoomSection = 15
 
     def initialize(window)
       super(:main)
@@ -28,12 +29,11 @@ module Escapist::Scene
 
       @hud = HUD.new
 
-
       rooms = {
-        :first => Room.new(15, 5, RoomDoors.new(top: [:TL, :TM, :TR], left: [:LT, :LB], bottom: [:B], right: [:R])),
-        :B => Room.new(5, 5, RoomDoors.new(top: [:first])),
-        :TL => Room.new(15, 3, RoomDoors.new(bottom: [:first], right: [:TR])),
-        :TR => Room.new(5, 3, RoomDoors.new(bottom: [:first], left: [:TL]))
+        :first => Room.new(RoomSection * 3, RoomSection * 2, RoomDoors.new(top: [:TL, :TR], left: [:LT, :LB], bottom: [:B, nil], right: [:R])),
+        :B => Room.new(RoomSection, RoomSection, RoomDoors.new(top: [:first])),
+        :TL => Room.new(RoomSection, RoomSection, RoomDoors.new(bottom: [:first], right: [:TR])),
+        :TR => Room.new(RoomSection, RoomSection, RoomDoors.new(bottom: [:first], left: [:TL]))
       }
 
       @floor = Floor.new(view, rooms, :first)

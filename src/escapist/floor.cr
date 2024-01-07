@@ -9,6 +9,8 @@ module Escapist
     getter player
     getter rooms : Hash(Symbol, Room)
 
+    Padding = 56
+
     def initialize(view, rooms, first_room : Symbol)
       @view = view
       @player = Player.new(x: 0, y: 0)
@@ -32,25 +34,23 @@ module Escapist
     end
 
     def update_viewport(room : Room)
-      padding = 256
-
-      room_width_bigger = room.width + padding * 2 > view.size.x
-      room_height_bigger = room.height + padding * 2 > view.size.y
+      room_width_bigger = room.width + Padding * 2 > view.size.x
+      room_height_bigger = room.height + Padding * 2 > view.size.y
 
       cx = room.width / 2
-      cx = view.size.x / 2 - padding if cx > view.size.x / 2 - padding
+      cx = view.size.x / 2 - Padding if cx > view.size.x / 2 - Padding
 
       cy = room.height / 2
-      cy = view.size.y / 2 - padding if cy > view.size.y / 2 - padding
+      cy = view.size.y / 2 - Padding if cy > view.size.y / 2 - Padding
 
       if room_width_bigger
         cx = player.x + player.size / 2 if player.x + player.size / 2 > cx
-        cx = room.width - view.size.x / 2 + padding if cx > room.width - view.size.x / 2 + padding
+        cx = room.width - view.size.x / 2 + Padding if cx > room.width - view.size.x / 2 + Padding
       end
 
       if room_height_bigger
         cy = player.y + player.size / 2 if player.y + player.size / 2 > cy
-        cy = room.height - view.size.y / 2 + padding if cy > room.height - view.size.y / 2 + padding
+        cy = room.height - view.size.y / 2 + Padding if cy > room.height - view.size.y / 2 + Padding
       end
 
       view.center(cx, cy)

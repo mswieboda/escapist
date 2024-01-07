@@ -1,16 +1,21 @@
 module Escapist
   class RoomDoors
-    getter top : Array(Symbol)
-    getter left : Array(Symbol)
-    getter bottom : Array(Symbol)
-    getter right : Array(Symbol)
-    getter entered : Symbol | Nil
+    alias DoorSymbol = Symbol | Nil
+    alias DoorSymbols = Array(Symbol) | Array(DoorSymbol)
 
-    Depth = 32
-    Width = 192
+    getter top : DoorSymbols
+    getter left : DoorSymbols
+    getter bottom : DoorSymbols
+    getter right : DoorSymbols
+    getter entered : DoorSymbol
+
+    Depth = 96
+    Width = 256
+    Color = SF::Color.new(13, 13, 13)
+    OutlineColor = SF::Color.new(102, 102, 102)
     OutlineThickness = 8
 
-    def initialize(top = [] of Symbol, left = [] of Symbol, bottom = [] of Symbol, right = [] of Symbol)
+    def initialize(top = [] of DoorSymbol, left = [] of DoorSymbol, bottom = [] of DoorSymbol, right = [] of DoorSymbol)
       @top = top
       @left = left
       @bottom = bottom
@@ -60,6 +65,8 @@ module Escapist
     def check_doors(player, keys, room_width, room_height, doors, key, horz = true, far = false)
       if !@entered && keys.pressed?(key)
         doors.each_with_index do |door, index|
+          next unless door
+
           cx, cy = door_center(doors, index, room_width, room_height, horz, far)
 
           if in_door?(player, cx, cy, horz, far)
@@ -125,6 +132,7 @@ module Escapist
 
     def draw_doors(window, doors, room_width, room_height, horz = true, far = false)
       doors.size.times do |index|
+        next unless doors[index]
         draw_door(window, doors, index, room_width, room_height, horz, far)
       end
     end
