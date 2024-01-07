@@ -6,15 +6,22 @@ module Escapist
     getter move_delay_timer : Timer
     getter move_repeat_delay_timer : Timer
     getter last_cursors
+    getter jump_sound
+    getter moved_timer : Timer
 
     Size = 128
 
     MoveDelayDuration = 150.milliseconds
     MoveRepeatDelayDuration = 75.milliseconds
+    MovedDuration = 250.milliseconds
 
     Color = SF::Color.new(153, 0, 0, 30)
     OutlineColor = SF::Color.new(153, 0, 0)
     OutlineThickness = 4
+
+    JumpSound = SF::SoundBuffer.from_file("./assets/cursor.wav")
+    JumpSoundVolume = 66
+    JumpSoundPitchVariation = 0.13
 
     def initialize(col = 0, row = 0)
       @col = col
@@ -23,6 +30,12 @@ module Escapist
       @move_delay_timer = Timer.new(MoveDelayDuration, true)
       @move_repeat_delay_timer = Timer.new(MoveRepeatDelayDuration, true)
       @last_cursors = [] of LastCursor
+
+      @jump_sound = SF::Sound.new(JumpSound)
+      jump_sound.volume = JumpSoundVolume
+
+      @moved_timer = Timer.new(MovedDuration)
+      @moved_timer.start
     end
 
     def size
@@ -92,15 +105,25 @@ module Escapist
       draw_cursor(window)
     end
 
+    #        (b-a)(x - min)
+    # f(x) = --------------  + a
+    #           max - min
+    def scale(new_min, new_max, min, max, x)
+      ((new_max - new_min) * (x - min)) / (max - min) + new_min
+    end
+
     def draw_cursor(window)
+      percent = [moved_timer.percent, 1].min
+      p_size = size * scale(0.775, 1, 0, 1, percent)
+
       rect = SF::RectangleShape.new
-      rect.size = SF.vector2f(size, size)
+      rect.size = SF.vector2f(p_size, p_size)
       rect.fill_color = Color
       rect.outline_color = OutlineColor
       rect.outline_thickness = OutlineThickness
       rect.position = {
-        x + OutlineThickness,
-        y + OutlineThickness
+        x + (size - p_size) / 2 + OutlineThickness,
+        y + (size - p_size) / 2 + OutlineThickness
       }
 
       window.draw(rect)
@@ -109,6 +132,13 @@ module Escapist
     def jump_to(col, row)
       @col = col
       @row = row
+
+      unless jump_sound.status == SF::SoundSource::Status::Playing
+        jump_sound.pitch = 1 - JumpSoundPitchVariation / 2 + rand(JumpSoundPitchVariation)
+        jump_sound.play
+      end
+
+      moved_timer.restart
     end
   end
 
@@ -145,8 +175,8 @@ module Escapist
 
     def draw(window)
       percent = [remove_timer.percent, 1].min
-      p_size = size * (1 - percent) * 0.75
-      alpha = ((255 - 255 * percent) * 0.75).to_i
+      p_size = size * (1 - percent) * 0.69
+      alpha = ((255 - 255 * percent) * 0.69).to_i
 
       rect = SF::RectangleShape.new
       rect.size = SF.vector2f(p_size, p_size)
