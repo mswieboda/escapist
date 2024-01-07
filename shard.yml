@@ -13,6 +13,10 @@ dependencies:
     github: mswieboda/game_sf
     version: 0.14.0
 
+development_dependencies:
+  ameba:
+    github: crystal-ameba/ameba
+
 crystal: '>= 1.10.1'
 
 license: MIT

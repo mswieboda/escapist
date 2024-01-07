@@ -117,20 +117,15 @@ module Escapist
     end
 
     def draw(window, room_width, room_height)
-      top.each_with_index do |door, index|
-        draw_door(window, top, index, room_width, room_height)
-      end
+      draw_doors(window, top, room_width, room_height)
+      draw_doors(window, left, room_width, room_height, horz: false)
+      draw_doors(window, bottom, room_width, room_height, far: true)
+      draw_doors(window, right, room_width, room_height, horz: false, far: true)
+    end
 
-      left.each_with_index do |door, index|
-        draw_door(window, left, index, room_width, room_height, horz: false)
-      end
-
-      bottom.each_with_index do |door, index|
-        draw_door(window, bottom, index, room_width, room_height, far: true)
-      end
-
-      right.each_with_index do |door, index|
-        draw_door(window, right, index, room_width, room_height, horz: false, far: true)
+    def draw_doors(window, doors, room_width, room_height, horz = true, far = false)
+      doors.size.times do |index|
+        draw_door(window, doors, index, room_width, room_height, horz, far)
       end
     end
 

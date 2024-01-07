@@ -29,6 +29,10 @@ module Escapist
 
       return if dx == 0 && dy == 0
 
+      move_with_speed(dx, dy, room_width, room_height)
+    end
+
+    def move_with_speed(dx, dy, room_width, room_height)
       speed = dx != 0 && dy != 0 ? Speed / 1.4142 : Speed
 
       dx *= (speed * frame_time).to_f32
