@@ -1,6 +1,7 @@
 require "../hud"
 require "../floor"
 require "../room"
+require "../block"
 
 module Escapist::Scene
   class Main < GSF::Scene
@@ -30,7 +31,7 @@ module Escapist::Scene
       @hud = HUD.new
 
       rooms = {
-        :first => Room.new(RoomSection * 3, RoomSection * 2, RoomDoors.new(top: [:TL, :TR], left: [:LT, :LB], bottom: [:B, nil], right: [:R])),
+        :first => Room.new(RoomSection * 3, RoomSection * 2, RoomDoors.new(top: [:TL, :TR], left: [:LT, :LB], bottom: [:B, nil], right: [:R]), blocks: [Block.new(3, 5), Block.new(1, 1)]),
         :B => Room.new(RoomSection, RoomSection, RoomDoors.new(top: [:first])),
         :TL => Room.new(RoomSection, RoomSection, RoomDoors.new(bottom: [:first], right: [:TR])),
         :TR => Room.new(RoomSection, RoomSection, RoomDoors.new(bottom: [:first], left: [:TL]))

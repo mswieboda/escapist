@@ -1,26 +1,29 @@
 require "./player"
 require "./room_doors"
+require "./block"
 
 module Escapist
   class Room
     getter tile_columns : Int32
     getter tile_rows : Int32
     getter doors : RoomDoors
+    getter blocks : Array(Block)
 
     delegate entered, to: @doors
     delegate clear_entered, to: @doors
 
-    OutlineColor = SF::Color.new(102, 102, 102)
-    OutlineThickness = 8
+    BorderColor = SF::Color.new(102, 102, 102)
+    BorderOutlineThickness = 8
     TileSize = 128
     TileFloorColor = SF::Color.new(6, 6, 6)
     TileGridColor = SF::Color.new(13, 13, 13)
     TileGridOutlineThickness = 2
 
-    def initialize(tile_columns, tile_rows, doors = RoomDoors.new)
+    def initialize(tile_columns, tile_rows, doors = RoomDoors.new, blocks = [] of Block)
       @tile_columns = tile_columns
       @tile_rows = tile_rows
       @doors = doors
+      @blocks = blocks
     end
 
     def width
@@ -45,6 +48,8 @@ module Escapist
       # floor
       draw_floor(window)
       draw_tile_grid(window)
+
+      blocks.each(&.draw(window))
 
       if player = p
         player.draw(window)
@@ -85,8 +90,8 @@ module Escapist
       rect = SF::RectangleShape.new
       rect.size = SF.vector2f(width, height)
       rect.fill_color = SF::Color::Transparent
-      rect.outline_color = OutlineColor
-      rect.outline_thickness = OutlineThickness
+      rect.outline_color = BorderColor
+      rect.outline_thickness = BorderOutlineThickness
 
       window.draw(rect)
     end
