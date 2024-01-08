@@ -82,7 +82,9 @@ module Escapist
     end
 
     def move_with_block_collisions(dx, dy, blocks)
-      blocks.each do |block|
+
+      # TODO: find the closest from coords instead of looping through all of them
+      blocks.values.flat_map(&.values).each do |block|
         dx = 0 if Box.new(x + dx, y, size, size).collision?(block.collision_box)
         dy = 0 if Box.new(x, y + dy, size, size).collision?(block.collision_box)
 

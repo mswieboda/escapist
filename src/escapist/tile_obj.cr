@@ -8,6 +8,7 @@ module Escapist
     getter col : Int32 = 0
     getter row : Int32 = 0
 
+    Key = "to"
     TileSize = 128
     Size = 96
     Offset = 16 # (TileSize - Size) / 2
@@ -17,6 +18,10 @@ module Escapist
     end
 
     def initialize(@col = 0, @row = 0)
+    end
+
+    def self.key
+      Key
     end
 
     def size
@@ -41,6 +46,12 @@ module Escapist
     def jump_to(col, row)
       @col = col
       @row = row
+    end
+
+    def to_tile_data
+      {
+        "key" => self.class.key
+      }
     end
   end
 end

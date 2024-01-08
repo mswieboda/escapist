@@ -1,6 +1,8 @@
 require "./player"
 # require "./room_doors"
 require "./block"
+require "./switch"
+require "./floor_switch"
 require "json"
 require "uuid"
 
@@ -8,7 +10,12 @@ module Escapist
   class Room
     include JSON::Serializable
 
-    alias BlockHash = Hash(Int32, Hash(Int32, String))
+    alias TileObjRow = Hash(Int32, Hash(String, String))
+    alias TileObjGrid = Hash(Int32, TileObjRow)
+    alias BlockRow = Hash(Int32, Block)
+    alias BlockGrid = Hash(Int32, BlockRow)
+    alias SwitchRow = Hash(Int32, Switch)
+    alias SwitchGrid = Hash(Int32, SwitchRow)
 
     getter id : String
     getter s_cols : Int32
@@ -17,7 +24,13 @@ module Escapist
     # @[JSON::Field(ignore: true, emit_null: true)]
     # getter doors : RoomDoors?
 
-    getter blocks : Array(Block)
+    getter tile_objs : TileObjGrid = TileObjGrid.new
+
+    @[JSON::Field(ignore: true)]
+    getter blocks : BlockGrid = BlockGrid.new
+
+    @[JSON::Field(ignore: true)]
+    getter switches : SwitchGrid = SwitchGrid.new
 
     # delegate entered, to: @doors
     # delegate clear_entered, to: @doors
@@ -35,8 +48,36 @@ module Escapist
 
     def initialize(@s_cols, @s_rows)
       @id = UUID.random.to_s
-      @blocks = [] of Block
+      @tile_objs = TileObjGrid.new
+      @blocks = BlockGrid.new
+      @switches = SwitchGrid.new
       # @doors = RoomDoors.new
+    end
+
+    def after_initialize
+      # {
+      #   5 => {
+      #     7 => {
+      #       "key" => "blk",
+      #       "opts" => {
+      #         # whatever
+      #       }
+      #   }
+      # }
+      tile_objs.each do |col, rows|
+        rows.each do |row, tile_data|
+          case tile_data["key"]
+          when Block.key
+            @blocks[col] = BlockRow.new if !@blocks.has_key?(col)
+            @blocks[col][row] = Block.new(col, row)
+          when FloorSwitch.key
+            @switches[col] = SwitchRow.new if !@switches.has_key?(col)
+            @switches[col][row] = FloorSwitch.new(col, row)
+          else
+            puts "Error: TileObj not found for key: #{tile_data["key"]}"
+          end
+        end
+      end
     end
 
     def cols
@@ -56,7 +97,54 @@ module Escapist
     end
 
     def display_name
-      "#{s_cols}x#{s_rows} b: #{blocks.size}"
+      "#{s_cols}x#{s_rows} to: #{tile_objs.values.flat_map(&.keys.size).sum}"
+    end
+
+    def tile_obj?(col, row)
+      return unless tile_objs.has_key?(col)
+
+      tile_objs[col].has_key?(row)
+    end
+
+    def remove_tile_obj(col, row)
+      return unless tile_objs.has_key?(col)
+
+      tile_data = tile_objs[col][row]
+
+      grid = case tile_data["key"]
+        when Block.key
+          @blocks
+        when FloorSwitch.key
+          @switches
+        else
+          @blocks
+        end
+
+      [tile_objs, grid].each do |hash|
+        hash[col].delete(row)
+        hash.delete(col) if hash[col].keys.empty?
+      end
+    end
+
+    def add_tile_obj(place_type : Symbol, col, row)
+      case place_type
+      when :block
+        block = Block.new(col, row)
+
+        tile_objs[col] = TileObjRow.new unless tile_objs.has_key?(col)
+        tile_objs[col][row] = block.to_tile_data
+
+        blocks[col] = BlockRow.new unless blocks.has_key?(col)
+        blocks[col][row] = block
+      when :floor_switch
+        switch = FloorSwitch.new(col, row)
+
+        tile_objs[col] = TileObjRow.new unless tile_objs.has_key?(col)
+        tile_objs[col][row] = switch.to_tile_data
+
+        switches[col] = SwitchRow.new unless switches.has_key?(col)
+        switches[col][row] = switch
+      end
     end
 
     def update(p : Player | Nil, keys : Keys)
@@ -74,7 +162,8 @@ module Escapist
       draw_floor(window)
       draw_tile_grid(window)
 
-      blocks.each(&.draw(window))
+      blocks.values.flat_map(&.values).each(&.draw(window))
+      switches.values.flat_map(&.values).each(&.draw(window))
 
       if player = p
         player.draw(window)

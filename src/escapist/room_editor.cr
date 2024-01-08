@@ -1,4 +1,5 @@
 require "./cursor"
+require "./block"
 
 module Escapist
   class RoomEditor
@@ -9,6 +10,8 @@ module Escapist
 
     Padding = 56
 
+    PlaceTypes = [nil, :block, :floor_switch]
+
     PlaceSound = SF::SoundBuffer.from_file("./assets/cursor.wav")
     PlaceSoundPitchDecrease = 0.33
     PlaceSoundPitchVariation = 0.13
@@ -18,6 +21,7 @@ module Escapist
       @room = room
       @cursor = Cursor.new(col: 0, row: 0)
       @place_sound = SF::Sound.new(PlaceSound)
+      @place_type_index = 0
     end
 
     def update(frame_time, keys : Keys)
@@ -52,22 +56,30 @@ module Escapist
     end
 
     def update_editing(keys : Keys)
-      return unless keys.just_pressed?(Keys::Space)
+      if keys.just_pressed?(Keys::Tab)
+        @place_type_index += 1
+        @place_type_index = 0 if @place_type_index > PlaceTypes.size - 1
+      end
 
-      if selected_block = room.blocks.find { |block| cursor.col == block.col && cursor.row == block.row }
-        room.blocks.delete(selected_block)
+      if room.tile_obj?(cursor.col, cursor.row)
+        return unless keys.just_pressed?(Keys::Space)
 
-        unless place_sound.status == SF::SoundSource::Status::Playing
-          place_sound.pitch = 1 + PlaceSoundPitchDecrease - PlaceSoundPitchVariation / 2 + rand(PlaceSoundPitchVariation)
-          place_sound.play
-        end
+        room.remove_tile_obj(cursor.col, cursor.row)
+        play_sound(remove: true)
       else
-        room.blocks << Block.new(cursor.col, cursor.row)
+        if place_type = PlaceTypes[@place_type_index]
+          return unless keys.just_pressed?(Keys::Space)
 
-        unless place_sound.status == SF::SoundSource::Status::Playing
-          place_sound.pitch = 1 - PlaceSoundPitchDecrease - PlaceSoundPitchVariation / 2 + rand(PlaceSoundPitchVariation)
-          place_sound.play
+          room.add_tile_obj(place_type, cursor.col, cursor.row)
+          play_sound
         end
+      end
+    end
+
+    def play_sound(remove = false)
+      unless place_sound.status == SF::SoundSource::Status::Playing
+        place_sound.pitch = 1 + ((remove ? -1 : 1) * PlaceSoundPitchDecrease) - PlaceSoundPitchVariation / 2 + rand(PlaceSoundPitchVariation)
+        place_sound.play
       end
     end
 

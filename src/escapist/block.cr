@@ -1,12 +1,15 @@
 require "./tile_obj"
-require "./box"
-require "json"
 
 module Escapist
   class Block < TileObj
+    Key = "blk"
     Color = SF::Color.new(153, 153, 153, 30)
     OutlineColor = SF::Color.new(102, 102, 102)
     OutlineThickness = 4
+
+    def self.key
+      Key
+    end
 
     def draw(window : SF::RenderWindow)
       rect = SF::RectangleShape.new
