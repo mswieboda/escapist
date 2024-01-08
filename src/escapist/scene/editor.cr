@@ -37,12 +37,7 @@ module Escapist::Scene
       @room_data = RoomData.load
       @editor = RoomEditor.new(view, Room.new(3, 2))
       @menu = false
-      @menu_items = GSF::MenuItems.new(
-        font: Font.default,
-        size: 32,
-        items: ["continue editing", "save room", "new room", "load room", "exit"],
-        initial_focused_index: 0
-      )
+      @menu_items = GSF::MenuItems.new(Font.default)
       @menu_rooms = false
       @menu_room_items = GSF::MenuItems.new(Font.default)
       @menu_new = false
@@ -58,16 +53,26 @@ module Escapist::Scene
       Screen.height - TopBorder - BottomBorder
     end
 
+    def open_menu
+      @menu = true
+      @menu_items = GSF::MenuItems.new(
+        font: Font.default,
+        size: 32,
+        items: ["continue editing", "save room", "new room", "load room", "exit"],
+        initial_focused_index: 0
+      )
+    end
+
     def update(frame_time, keys : Keys, mouse : Mouse, joysticks : Joysticks)
       if keys.just_pressed?(Keys::Escape)
         if menu_new?
           @menu_new = false
-          @menu = true
+          open_menu
         elsif menu_rooms?
           @menu_rooms = false
-          @menu = true
+          open_menu
         else
-          @menu = !@menu
+          open_menu if @menu = !@menu
         end
       end
 
@@ -170,7 +175,7 @@ module Escapist::Scene
           end
         elsif item.label == "back"
           @menu_new = false
-          @menu = true
+          open_menu
         end
       end
     end
@@ -183,7 +188,7 @@ module Escapist::Scene
 
         if key == "back"
           @menu_rooms = false
-          @menu = true
+          open_menu
           return
         end
 
