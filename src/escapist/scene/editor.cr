@@ -130,6 +130,12 @@ module Escapist::Scene
     def update_menu_new(keys : Keys)
       item = @new_items[@new_item_index]
 
+      update_menu_new_item_index(keys)
+      update_menu_new_item_values(keys, item)
+      update_menu_new_item_selection(keys, item)
+    end
+
+    def update_menu_new_item_index(keys : Keys)
       # next
       if keys.just_pressed?([Keys::Down, Keys::S, Keys::RShift, Keys::Tab])
         @new_item_index += 1
@@ -139,7 +145,9 @@ module Escapist::Scene
         @new_item_index -= 1
         @new_item_index = @new_items.size - 1 if @new_item_index < 0
       end
+    end
 
+    def update_menu_new_item_values(keys : Keys, item)
       if item.value?
         # value up
         if keys.just_pressed?([Keys::Right, Keys::D])
@@ -149,7 +157,9 @@ module Escapist::Scene
           item.decrease
         end
       end
+    end
 
+    def update_menu_new_item_selection(keys : Keys, item)
       if keys.just_pressed?([Keys::Space, Keys::Enter])
         if item.value?
           if cols = @new_items.find { |i| i.key == "cols" }
