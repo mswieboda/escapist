@@ -11,10 +11,14 @@ module Escapist::Scene
     getter menu_items
     getter? menu_rooms
     getter menu_room_items
+    getter? menu_new
 
     TopBorder = 64
     BottomBorder = 64
     HorizontalBorder = 16
+
+    RoomDimensionMin = 1
+    RoomDimensionMax = 5
 
     def initialize(window)
       super(:editor)
@@ -39,7 +43,11 @@ module Escapist::Scene
         items: ["continue editing", "save room", "new room", "load room", "exit"],
         initial_focused_index: 0
       )
+      @menu_rooms = false
       @menu_room_items = GSF::MenuItems.new(Font.default)
+      @menu_new = false
+      @new_item_index = 0
+      @new_items = [] of NewItem
     end
 
     def width
@@ -52,7 +60,10 @@ module Escapist::Scene
 
     def update(frame_time, keys : Keys, mouse : Mouse, joysticks : Joysticks)
       if keys.just_pressed?(Keys::Escape)
-        if menu_rooms?
+        if menu_new?
+          @menu_new = false
+          @menu = true
+        elsif menu_rooms?
           @menu_rooms = false
           @menu = true
         else
@@ -62,6 +73,8 @@ module Escapist::Scene
 
       if menu?
         update_menu(frame_time, keys, mouse, joysticks)
+      elsif menu_new?
+        update_menu_new(keys)
       elsif menu_rooms?
         update_menu_rooms(frame_time, keys, mouse, joysticks)
       else
@@ -81,9 +94,14 @@ module Escapist::Scene
           @room_data.save
           @menu = false
         when "new room"
-          # TODO: make s_cols, s_rows editable
-          @editor.room = Room.new(1, 1)
+          @new_item_index = 0
+          @menu_new = true
           @menu = false
+          @new_items = [
+            NewItem.new("cols", 1),
+            NewItem.new("rows", 1),
+            NewItem.new("back")
+          ]
         when "load room"
           items = [] of String | Tuple(String, String)
 
@@ -105,6 +123,44 @@ module Escapist::Scene
         when "exit"
           @menu = false
           @exit = true
+        end
+      end
+    end
+
+    def update_menu_new(keys : Keys)
+      item = @new_items[@new_item_index]
+
+      # next
+      if keys.just_pressed?([Keys::Down, Keys::S, Keys::RShift, Keys::Tab])
+        @new_item_index += 1
+        @new_item_index = 0 if @new_item_index > @new_items.size - 1
+      # prev
+      elsif keys.just_pressed?([Keys::Up, Keys::W, Keys::LShift])
+        @new_item_index -= 1
+        @new_item_index = @new_items.size - 1 if @new_item_index < 0
+      end
+
+      if item.value?
+        # value up
+        if keys.just_pressed?([Keys::Right, Keys::D])
+          item.increase
+        # value down
+        elsif keys.just_pressed?([Keys::Left, Keys::A])
+          item.decrease
+        end
+      end
+
+      if keys.just_pressed?([Keys::Space, Keys::Enter])
+        if item.value?
+          if cols = @new_items.find { |i| i.key == "cols" }
+            if rows = @new_items.find { |i| i.key == "rows" }
+              @editor.room = Room.new(cols.data, rows.data)
+              @menu_new = false
+            end
+          end
+        elsif item.label == "back"
+          @menu_new = false
+          @menu = true
         end
       end
     end
@@ -139,11 +195,22 @@ module Escapist::Scene
 
       draw_border(window)
 
-      draw_menu_background(window)  if menu? || menu_rooms?
+      draw_menu_background(window) if menu? || menu_new? || menu_rooms?
+
+      # NOTE: for now centered horizontally and vertically on the whole screen
+      #       same as GSF::MenuItems placement
+      size = 32
+      x = Screen.width / 2
+      y = Screen.height / 2 - size * 3
 
       if menu?
+        draw_header_label(window, "editor", 48, x, y - 48 * 3)
         menu_items.draw(window)
+      elsif menu_new?
+        draw_header_label(window, "new room", 48, x, y - 48 * 3)
+        draw_menu_new(window)
       elsif menu_rooms?
+        draw_header_label(window, "load room", 48, x, y - 48 * 3)
         menu_room_items.draw(window)
       end
     end
@@ -162,6 +229,40 @@ module Escapist::Scene
       window.draw(rect)
     end
 
+    def draw_menu_new(window)
+      # NOTE: for now centered horizontally and vertically on the whole screen
+      #       same as GSF::MenuItems placement
+      size = 32
+      x = Screen.width / 2
+      y = Screen.height / 2 - size * 3
+
+      @new_items.each_with_index do |item, index|
+        draw_new_selectable_label(window, item.label, size, index, x, y)
+      end
+    end
+
+    def draw_header_label(window, label, size, x, y)
+      text = SF::Text.new(label, Font.default, size)
+      item_x = x - text.global_bounds.width / 2
+      item_y = y - text.global_bounds.height / 2
+      text.position = SF.vector2(item_x, item_y)
+      text.fill_color = SF::Color::White
+
+      window.draw(text)
+    end
+
+    def draw_new_selectable_label(window, label, size, index, x, y)
+      text = SF::Text.new(label, Font.default, size)
+      item_x = x - text.global_bounds.width / 2
+      item_y = y - text.global_bounds.height / 2 + index * size * 2
+      text.position = SF.vector2(item_x, item_y)
+
+      # focused
+      text.fill_color = @new_item_index == index ? SF::Color::Green : SF::Color::White
+
+      window.draw(text)
+    end
+
     def draw_border(window)
       rect = SF::RectangleShape.new
       rect.size = SF.vector2f(width, height)
@@ -171,6 +272,40 @@ module Escapist::Scene
       rect.position = {HorizontalBorder, TopBorder}
 
       window.draw(rect)
+    end
+  end
+
+  class NewItem
+    @label : String
+
+    getter data : Int32
+
+    RoomDimensionMin = 1
+    RoomDimensionMax = 5
+
+    def initialize(@label, @data = 0)
+    end
+
+    def key
+      @label
+    end
+
+    def value?
+      @data > 0
+    end
+
+    def label
+      value? ? "< #{@label}: #{@data} >" : @label
+    end
+
+    def increase
+      @data += 1
+      @data = RoomDimensionMax if @data > RoomDimensionMax
+    end
+
+    def decrease
+      @data -= 1
+      @data = RoomDimensionMin if @data < RoomDimensionMin
     end
   end
 end
