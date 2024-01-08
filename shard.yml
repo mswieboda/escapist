@@ -11,7 +11,7 @@ targets:
 dependencies:
   game_sf:
     github: mswieboda/game_sf
-    version: 0.16.0
+    version: 0.17.0
 
 development_dependencies:
   ameba:

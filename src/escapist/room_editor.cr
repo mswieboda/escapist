@@ -4,7 +4,7 @@ module Escapist
   class RoomEditor
     getter view : View
     getter cursor
-    getter room : Room
+    property room : Room
     getter place_sound
 
     Padding = 56
@@ -17,7 +17,6 @@ module Escapist
       @view = view
       @room = room
       @cursor = Cursor.new(col: 0, row: 0)
-
       @place_sound = SF::Sound.new(PlaceSound)
     end
 
@@ -25,6 +24,8 @@ module Escapist
       cursor.update(frame_time, keys, room.width, room.height)
       update_viewport(room)
       room.update(nil, keys)
+
+      update_editing(keys)
     end
 
     def update_viewport(room : Room)
@@ -48,6 +49,26 @@ module Escapist
       end
 
       view.center(cx, cy)
+    end
+
+    def update_editing(keys : Keys)
+      return unless keys.just_pressed?(Keys::Space)
+
+      if selected_block = room.blocks.find { |block| cursor.col == block.col && cursor.row == block.row }
+        room.blocks.delete(selected_block)
+
+        unless place_sound.status == SF::SoundSource::Status::Playing
+          place_sound.pitch = 1 + PlaceSoundPitchDecrease - PlaceSoundPitchVariation / 2 + rand(PlaceSoundPitchVariation)
+          place_sound.play
+        end
+      else
+        room.blocks << Block.new(cursor.col, cursor.row)
+
+        unless place_sound.status == SF::SoundSource::Status::Playing
+          place_sound.pitch = 1 - PlaceSoundPitchDecrease - PlaceSoundPitchVariation / 2 + rand(PlaceSoundPitchVariation)
+          place_sound.play
+        end
+      end
     end
 
     def draw(window : SF::RenderWindow)

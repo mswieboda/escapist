@@ -1,7 +1,10 @@
 require "./box"
+require "json"
 
 module Escapist
   class Block
+    include JSON::Serializable
+
     getter col : Int32
     getter row : Int32
 

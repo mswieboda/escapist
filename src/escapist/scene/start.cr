@@ -9,7 +9,7 @@ module Escapist::Scene
       @start_scene = nil
       @items = GSF::MenuItems.new(
         font: Font.default,
-        labels: ["start", "options", "editor", "exit"],
+        items: ["start", "editor", "exit"],
         initial_focused_index: 0
       )
     end
@@ -24,7 +24,7 @@ module Escapist::Scene
       items.update(frame_time, keys, mouse)
 
       if @items.selected?(keys, mouse, joysticks)
-        case items.focused
+        case items.focused_label
         when "start"
           @start_scene = :main
         when "editor"
