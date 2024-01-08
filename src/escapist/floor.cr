@@ -3,15 +3,15 @@ require "./player"
 module Escapist
   class Floor
     @room : Room | Nil
-    @room_key : Symbol
+    @room_key : String
 
     getter view : View
     getter player
-    getter rooms : Hash(Symbol, Room)
+    getter rooms : Hash(String, Room)
 
     Padding = 56
 
-    def initialize(view, rooms, first_room : Symbol)
+    def initialize(view, rooms, first_room : String)
       @view = view
       @player = Player.new(x: 0, y: 0)
       @rooms = rooms
