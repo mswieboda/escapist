@@ -22,7 +22,7 @@ module Escapist
 
     def update(frame_time, keys : Keys)
       if room = @room
-        player.update(frame_time, keys, room.width, room.height, room.blocks)
+        player.update(frame_time, keys, room)
         update_viewport(room)
         room.update(player, keys)
 

@@ -28,12 +28,12 @@ module Escapist
       @sprint_wait_timer = Timer.new(SprintWaitDuration, true)
     end
 
-    def update(frame_time, keys : Keys, room_width, room_height, blocks)
-      update_movement(frame_time, keys, room_width, room_height, blocks)
+    def update(frame_time, keys : Keys, room)
+      update_movement(frame_time, keys, room)
       update_sprinting(keys)
     end
 
-    def update_movement(frame_time, keys : Keys, room_width, room_height, blocks)
+    def update_movement(frame_time, keys : Keys, room)
       dx = 0
       dy = 0
 
@@ -45,7 +45,7 @@ module Escapist
       return if dx == 0 && dy == 0
 
       dx, dy = move_with_speed(dx, dy, frame_time)
-      dx, dy = move_with_collisions(dx, dy, room_width, room_height, blocks)
+      dx, dy = move_with_room(dx, dy, room)
 
       return if dx == 0 && dy == 0
 
@@ -63,30 +63,29 @@ module Escapist
       {dx, dy}
     end
 
-    def move_with_collisions(dx, dy, room_width, room_height, blocks)
-      dx, dy = move_with_room_bounds(dx, dy, room_width, room_height)
+    def move_with_room(dx, dy, room)
+      dx, dy = move_with_room_bounds(dx, dy, room)
 
       return {dx, dy} if dx == 0 && dy == 0
 
-      dx, dy = move_with_block_collisions(dx, dy, blocks)
+      dx, dy = move_with_room_collisions(dx, dy, room.tiles)
 
       {dx, dy}
     end
 
-    def move_with_room_bounds(dx, dy, room_width, room_height)
+    def move_with_room_bounds(dx, dy, room)
       # room wall collisions
-      dx = 0 if x + dx < 0 || x + dx + size > room_width
-      dy = 0 if y + dy < 0 || y + dy + size > room_height
+      dx = 0 if x + dx < 0 || x + dx + size > room.width
+      dy = 0 if y + dy < 0 || y + dy + size > room.height
 
       {dx, dy}
     end
 
-    def move_with_block_collisions(dx, dy, blocks)
-
+    def move_with_room_collisions(dx, dy, tiles)
       # TODO: find the closest from coords instead of looping through all of them
-      blocks.values.flat_map(&.values).each do |block|
-        dx = 0 if Box.new(x + dx, y, size, size).collision?(block.collision_box)
-        dy = 0 if Box.new(x, y + dy, size, size).collision?(block.collision_box)
+      tiles.values.flat_map(&.values).each do |tile_obj|
+        dx = 0 if Box.new(x + dx, y, size, size).collision?(tile_obj.collision_box)
+        dy = 0 if Box.new(x, y + dy, size, size).collision?(tile_obj.collision_box)
 
         break if dx == 0 && dy == 0
       end

@@ -7,6 +7,10 @@ module Escapist
     OutlineColor = SF::Color.new(102, 102, 102)
     OutlineThickness = 4
 
+    def initialize(col = 0, row = 0, on = false)
+      super("floor", col, row, on)
+    end
+
     def self.key
       Key
     end

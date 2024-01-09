@@ -32,7 +32,13 @@ module Escapist
     end
 
     def self.load
-      self.from_json(File.read(FilePath))
+      if File.exists?(FilePath)
+        self.from_json(File.read(FilePath))
+      else
+        room = RoomData.new
+        room.save
+        room
+      end
     end
   end
 end
