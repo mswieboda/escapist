@@ -9,6 +9,11 @@ module Escapist
     OnOutlineColor = SF::Color.new(0, 102, 0, 50)
     OffOutlineColor = SF::Color.new(102, 102, 102)
     OutlineThickness = 4
+    OnSoundBuffer = SF::SoundBuffer.from_file("./assets/floor_switch_on.wav")
+    OnSoundVolume = 33
+    OnSoundPitchVariation = 0.03
+    OnSound = SF::Sound.new(OnSoundBuffer)
+    OnSound.volume = OnSoundVolume
 
     def initialize(col = 0, row = 0, on = false)
       super("floor", col, row, on)
@@ -28,6 +33,11 @@ module Escapist
 
     def area_entered
       @on = true
+
+      unless OnSound.status == SF::SoundSource::Status::Playing
+        OnSound.pitch = 1 - OnSoundPitchVariation / 2 + rand(OnSoundPitchVariation)
+        OnSound.play
+      end
     end
 
     def area_exited
