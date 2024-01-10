@@ -1,13 +1,16 @@
 module Escapist
   class RoomDoors
-    alias DoorSymbol = Symbol | Nil
-    alias DoorSymbols = Array(Symbol) | Array(DoorSymbol)
+    include JSON::Serializable
 
-    getter top : DoorSymbols
-    getter left : DoorSymbols
-    getter bottom : DoorSymbols
-    getter right : DoorSymbols
-    getter entered : DoorSymbol
+    alias DoorKey = String | Nil
+
+    getter top = [] of DoorKey
+    getter left = [] of DoorKey
+    getter bottom = [] of DoorKey
+    getter right = [] of DoorKey
+
+    @[JSON::Field(ignore: true)]
+    getter entered : DoorKey
 
     Depth = 96
     Width = 256
@@ -15,7 +18,7 @@ module Escapist
     OutlineColor = SF::Color.new(102, 102, 102)
     OutlineThickness = 8
 
-    def initialize(top = [] of DoorSymbol, left = [] of DoorSymbol, bottom = [] of DoorSymbol, right = [] of DoorSymbol)
+    def initialize(top = [] of DoorKey, left = [] of DoorKey, bottom = [] of DoorKey, right = [] of DoorKey)
       @top = top
       @left = left
       @bottom = bottom

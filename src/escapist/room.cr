@@ -1,5 +1,5 @@
 require "./player"
-# require "./room_doors"
+require "./room_doors"
 require "./tile_obj"
 require "./block"
 require "./floor_switch"
@@ -17,13 +17,10 @@ module Escapist
     getter s_cols : Int32
     getter s_rows : Int32
     getter tiles : TileGrid = TileGrid.new
+    getter doors : RoomDoors = RoomDoors.new
 
-    # @[JSON::Field(ignore: true, emit_null: true)]
-    # getter doors : RoomDoors?
-    # delegate entered, to: @doors
-    # delegate clear_entered, to: @doors
-    def entered; end
-    def clear_entered; end
+    delegate entered, to: @doors
+    delegate clear_entered, to: @doors
 
     TileSize = 128
     SectionTiles = 15
@@ -37,7 +34,7 @@ module Escapist
     def initialize(@s_cols, @s_rows)
       @id = UUID.random.to_s
       @tiles = TileGrid.new
-      # @doors = RoomDoors.new
+      @doors = RoomDoors.new
     end
 
     def cols
@@ -89,14 +86,40 @@ module Escapist
       tiles[col][row] = tile
     end
 
+    def add_door(door : Symbol, room_key, cell_index)
+      door_list = case door
+        when :top
+          doors.top
+        when :left
+          doors.left
+        when :bottom
+          doors.bottom
+        when :right
+          doors.right
+        else
+          [] of String | Nil # DoorKey via RoomDoors
+        end
+
+      section_index = (cell_index / SectionTiles).to_i
+      empty_doors = section_index - door_list.size - 2
+
+      if empty_doors > 0
+        empty_doors.times do
+          door_list << nil
+        end
+      end
+
+      door_list << room_key
+    end
+
     def update(p : Player | Nil, keys : Keys)
-      # if player = p
-      #   doors.update(player, keys, width, height)
-      # end
+      if player = p
+        doors.update(player, keys, width, height)
+      end
     end
 
     def spawn_player(player, room_key)
-      # doors.spawn_player(player, room_key, width, height)
+      doors.spawn_player(player, room_key, width, height)
     end
 
     def tiles_near(x, y)
@@ -119,7 +142,7 @@ module Escapist
       end
 
       draw_border(window)
-      # doors.draw(window, width, height)
+      doors.draw(window, width, height)
     end
 
     def draw_floor(window)

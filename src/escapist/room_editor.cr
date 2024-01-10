@@ -9,6 +9,7 @@ module Escapist
     getter? has_tile
     getter place_sound
     getter switch_sound
+    getter? door_indicator
 
     Padding = 56
 
@@ -24,6 +25,8 @@ module Escapist
 
     XFontSize = 48
     XTextColor = SF::Color.new(153, 0, 0, 125)
+    DoorIndicatorFontSize = 24
+    DoorIndicatorTextColor = SF::Color.new(153, 0, 0, 125)
 
     def initialize(view, room)
       @view = view
@@ -31,9 +34,12 @@ module Escapist
       @cursor = Cursor.new(col: 0, row: 0)
       @place_type_index = 0
       @has_tile = false
+
       @place_sound = SF::Sound.new(PlaceSound)
       @switch_sound = SF::Sound.new(SwitchSound)
       @switch_sound.volume = SwitchSoundVolume
+
+      @door_indicator = false
     end
 
     def place_type_sym
@@ -72,6 +78,8 @@ module Escapist
     end
 
     def update_editing(keys : Keys)
+      check_for_door_indicator
+
       if keys.just_pressed?(Keys::Tab)
         @place_type_index += 1
         @place_type_index = 0 if @place_type_index > PlaceTypes.size - 1
@@ -99,6 +107,25 @@ module Escapist
       end
     end
 
+    def check_for_door_indicator
+      @door_indicator = [0, room.cols - 1].includes?(cursor.col) && ![0, room.rows - 1].includes?(cursor.row) ||
+        [0, room.rows - 1].includes?(cursor.row) && ![0, room.cols - 1].includes?(cursor.col)
+    end
+
+    def cursor_door_sym
+      if ![0, room.cols - 1].includes?(cursor.col)
+        return :top if cursor.row == 0
+        return :bottom if cursor.row == room.rows - 1
+      end
+
+      if ![0, room.rows - 1].includes?(cursor.row)
+        return :left if cursor.col == 0
+        return :right if cursor.col == room.cols - 1
+      end
+
+      :none
+    end
+
     def play_place_sound(remove = false)
       unless place_sound.status == SF::SoundSource::Status::Playing
         place_sound.pitch = 1 + ((remove ? -1 : 1) * PlaceSoundPitchDecrease) - PlaceSoundPitchVariation / 2 + rand(PlaceSoundPitchVariation)
@@ -111,6 +138,8 @@ module Escapist
 
       if has_tile?
         draw_x(window)
+      elsif door_indicator?
+        draw_door_indicator(window)
       else
         case place_type_sym
           when :block
@@ -129,6 +158,28 @@ module Escapist
       text.position = {
         cursor.x + (cursor.size - text.global_bounds.width) / 2,
         cursor.y + (cursor.size - text.global_bounds.height) / 2
+      }
+
+      window.draw(text)
+    end
+
+    def draw_door_indicator(window)
+      text = SF::Text.new("press [E]", Font.default, DoorIndicatorFontSize)
+      text.fill_color = DoorIndicatorTextColor
+      text.position = {
+        cursor.x + (cursor.size - text.global_bounds.width) / 2,
+        cursor.y + cursor.size + text.global_bounds.height / 2
+      }
+
+      y = text.position[1]
+
+      window.draw(text)
+
+      text = SF::Text.new("for door", Font.default, DoorIndicatorFontSize)
+      text.fill_color = DoorIndicatorTextColor
+      text.position = {
+        cursor.x + (cursor.size - text.global_bounds.width) / 2,
+        y + text.global_bounds.height
       }
 
       window.draw(text)

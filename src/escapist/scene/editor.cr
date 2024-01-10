@@ -58,7 +58,7 @@ module Escapist::Scene
       @menu_items = GSF::MenuItems.new(
         font: Font.default,
         size: 32,
-        items: ["continue editing", "save room", "new room", "load room", "exit"],
+        items: ["continue editing", "save floor", "new room", "load room", "exit"],
         initial_focused_index: 0
       )
     end
@@ -76,6 +76,8 @@ module Escapist::Scene
         end
       end
 
+      update_door if editor.door_indicator? && keys.just_pressed?(Keys::E)
+
       if menu?
         update_menu(frame_time, keys, mouse, joysticks)
       elsif menu_new?
@@ -87,6 +89,32 @@ module Escapist::Scene
       end
     end
 
+    def update_door
+      # TODO: let user choose existing room, or choose new room dimensions
+      new_room = Room.new(1, 1)
+
+      door = editor.cursor_door_sym
+      cell_index, opposite_door = case door
+        when :top
+          {editor.cursor.col, :bottom}
+        when :left
+          {editor.cursor.row, :right}
+        when :bottom
+          {editor.cursor.col, :top}
+        when :right
+          {editor.cursor.row, :left}
+        else
+          {0, :bottom}
+        end
+
+      editor.room.add_door(door, new_room.id, cell_index)
+      # TODO: not sure how to choose the opposite room's cell_index/section_index
+      #       of where to place the door
+      #       this will take additional UI, or just assign the next one for that door array
+      new_room.add_door(opposite_door, editor.room.id, 0)
+      floor_data.update_room(new_room)
+    end
+
     def update_menu(frame_time, keys : Keys, mouse : Mouse, joysticks : Joysticks)
       menu_items.update(frame_time, keys, mouse)
 
@@ -94,7 +122,7 @@ module Escapist::Scene
         case menu_items.focused_label
         when "continue editing"
           @menu = false
-        when "save room"
+        when "save floor"
           floor_data.update_room(editor.room)
           floor_data.save
           @menu = false
