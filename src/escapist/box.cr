@@ -5,7 +5,8 @@ module Escapist
     property width : Int32 | Float32
     property height : Int32 | Float32
 
-    def initialize(@x, @y, @width, @height)
+    def initialize(@x, @y, @width, height = nil)
+      @height = height ? height : @width
     end
 
     def collision?(other : Box)

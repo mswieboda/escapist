@@ -39,12 +39,30 @@ module Escapist
       row * TileSize + Offset
     end
 
+    def area?
+      false
+    end
+
     def collidable?
       false
     end
 
     def collision_box
-      Box.new(x, y, size, size)
+      Box.new(x, y, size)
+    end
+
+    def area_box
+      Box.new(x, y, size)
+    end
+
+    def area_entered?
+      false
+    end
+
+    def area_entered
+    end
+
+    def area_exited
     end
 
     def self.cells_near(x, y)

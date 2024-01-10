@@ -28,6 +28,10 @@ module Escapist
       @sprint_wait_timer = Timer.new(SprintWaitDuration, true)
     end
 
+    def size
+      Size
+    end
+
     def update(frame_time, keys : Keys, room)
       update_movement(frame_time, keys, room)
       update_sprinting(keys)
@@ -50,6 +54,8 @@ module Escapist
       return if dx == 0 && dy == 0
 
       move(dx, dy)
+
+      area_checks(room)
     end
 
     def move_with_speed(dx, dy, frame_time)
@@ -68,7 +74,7 @@ module Escapist
 
       return {dx, dy} if dx == 0 && dy == 0
 
-      dx, dy = move_with_room_collisions(dx, dy, room.tiles)
+      dx, dy = move_with_room_collisions(dx, dy, room)
 
       {dx, dy}
     end
@@ -81,21 +87,33 @@ module Escapist
       {dx, dy}
     end
 
-    def move_with_room_collisions(dx, dy, tiles)
-      cells_near = TileObj.cells_near(x + dx, y + dy)
+    def move_with_room_collisions(dx, dy, room)
+      collidables = room.tiles_near(x + dx, y + dy).select(&.collidable?)
 
-      cells_near.each do |(col, row)|
-        next unless tiles.has_key?(col) && tiles[col].has_key?(row)
-        next unless tile_obj = tiles[col][row]
-        next unless tile_obj.collidable?
-
-        dx = 0 if Box.new(x + dx, y, size, size).collision?(tile_obj.collision_box)
-        dy = 0 if Box.new(x, y + dy, size, size).collision?(tile_obj.collision_box)
+      collidables.each do |tile_obj|
+        dx = 0 if collision?(tile_obj.collision_box, dx)
+        dy = 0 if collision?(tile_obj.collision_box, 0, dy)
 
         break if dx == 0 && dy == 0
       end
 
       {dx, dy}
+    end
+
+    def area_checks(room)
+      areas = room.tiles_near(x, y).select(&.area?)
+      areas_entered = areas.select(&.area_entered?)
+      areas_not_entered = areas.reject(&.area_entered?)
+
+      areas_entered.each do |tile_obj|
+        next if collision?(tile_obj.area_box)
+
+        tile_obj.area_exited
+      end
+
+      areas_not_entered.each do |tile_obj|
+        tile_obj.area_entered if collision?(tile_obj.area_box)
+      end
     end
 
     def update_sprinting(keys)
@@ -131,8 +149,8 @@ module Escapist
       @y = y
     end
 
-    def size
-      Size
+    def collision?(box : Box, dx = 0, dy = 0)
+      Box.new(x + dx, y + dy, size).collision?(box)
     end
   end
 end

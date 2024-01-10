@@ -99,6 +99,14 @@ module Escapist
       # doors.spawn_player(player, room_key, width, height)
     end
 
+    def tiles_near(x, y)
+      TileObj.cells_near(x, y).compact_map do |(col, row)|
+        next unless tiles.has_key?(col) && tiles[col].has_key?(row)
+        next unless tile_obj = tiles[col][row]
+        tile_obj
+      end
+    end
+
     def draw(window : SF::RenderWindow, p : Player | Nil)
       # floor
       draw_floor(window)
