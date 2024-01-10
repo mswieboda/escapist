@@ -1,12 +1,12 @@
 require "../room"
-require "../room_data"
+require "../floor_data"
 require "../room_editor"
 
 module Escapist::Scene
   class Editor < GSF::Scene
     getter view : View
     getter editor : RoomEditor
-    getter room_data : RoomData
+    getter floor_data : FloorData
     getter? menu
     getter menu_items
     getter? menu_rooms
@@ -34,8 +34,8 @@ module Escapist::Scene
         height: height / Screen.height
       )
 
-      @room_data = RoomData.load
-      @editor = RoomEditor.new(view, Room.new(3, 2))
+      @floor_data = FloorData.load
+      @editor = RoomEditor.new(view, @floor_data.first_room)
       @menu = false
       @menu_items = GSF::MenuItems.new(Font.default)
       @menu_rooms = false
@@ -95,8 +95,8 @@ module Escapist::Scene
         when "continue editing"
           @menu = false
         when "save room"
-          @room_data.update_room(editor.room)
-          @room_data.save
+          floor_data.update_room(editor.room)
+          floor_data.save
           @menu = false
         when "new room"
           @new_item_index = 0
@@ -110,8 +110,8 @@ module Escapist::Scene
         when "load room"
           items = [] of String | Tuple(String, String)
 
-          @room_data.rooms.each do |room|
-            items << {room.id, room.display_name}
+          floor_data.rooms.each do |id, room|
+            items << {id, room.display_name}
           end
 
           items << "back"
@@ -192,7 +192,7 @@ module Escapist::Scene
           return
         end
 
-        if found_room = @room_data.rooms.find { |room| room.id == key }
+        if found_room = floor_data.rooms[key]
           @editor.room = found_room
           @menu_rooms = false
         else

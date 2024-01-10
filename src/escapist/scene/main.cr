@@ -1,5 +1,6 @@
-require "../hud"
+require "../floor_data"
 require "../floor"
+require "../hud"
 require "../room"
 require "../block"
 
@@ -30,21 +31,14 @@ module Escapist::Scene
 
       @hud = HUD.new
 
-      first_room_key = "first"
-      rooms = { "first" => Room.new(3, 2) }
+      floor_data = FloorData.load
+      first_room_key = floor_data.first_room_key
 
-      if is_random_room
-        rooms = {} of String => Room
-        room_data = RoomData.load
-
-        room_data.rooms.each do |room|
-          rooms[room.id] = room
-        end
-
-        first_room_key = rooms.keys.sample
+      if is_random_room || first_room_key.empty?
+        first_room_key = floor_data.rooms.keys.sample
       end
 
-      @floor = Floor.new(view, rooms, first_room_key)
+      @floor = Floor.new(view, floor_data.rooms, first_room_key)
     end
 
     def width

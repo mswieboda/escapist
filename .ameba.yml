@@ -27,7 +27,7 @@ Documentation/DocumentationAdmonition:
   Description: Reports documentation admonitions
   Timezone: UTC
   Excluded:
-  - src/escapist/room_data.cr
+  - src/escapist/floor_data.cr
   - src/escapist/scene/editor.cr
   Admonitions:
   - TODO
@@ -43,7 +43,7 @@ Naming/BlockParameterName:
   MinNameLength: 3
   AllowNamesEndingInNumbers: true
   Excluded:
-  - src/escapist/room_data.cr
+  - src/escapist/floor_data.cr
   AllowedNames:
   - _
   - e

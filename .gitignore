@@ -9,4 +9,4 @@ build
 .DS_Store
 
 # room data
-assets/room_data.dat
+assets/floor_data.dat
