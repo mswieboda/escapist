@@ -82,8 +82,13 @@ module Escapist
     end
 
     def move_with_room_collisions(dx, dy, tiles)
-      # TODO: find the closest from coords instead of looping through all of them
-      tiles.values.flat_map(&.values).each do |tile_obj|
+      cells_near = TileObj.cells_near(x + dx, y + dy)
+
+      cells_near.each do |(col, row)|
+        next unless tiles.has_key?(col) && tiles[col].has_key?(row)
+        next unless tile_obj = tiles[col][row]
+        next unless tile_obj.collidable?
+
         dx = 0 if Box.new(x + dx, y, size, size).collision?(tile_obj.collision_box)
         dy = 0 if Box.new(x, y + dy, size, size).collision?(tile_obj.collision_box)
 

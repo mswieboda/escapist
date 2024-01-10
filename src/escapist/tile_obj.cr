@@ -39,8 +39,23 @@ module Escapist
       row * TileSize + Offset
     end
 
+    def collidable?
+      false
+    end
+
     def collision_box
       Box.new(x, y, size, size)
+    end
+
+    def self.cells_near(x, y)
+      near_col = (x / TileSize).round.to_i
+      near_row = (y / TileSize).round.to_i
+
+      [-1, 0, 1].flat_map do |col_i|
+        [-1, 0, 1].map do |row_i|
+          {near_col + col_i, near_row + row_i}
+        end
+      end
     end
 
     def draw(window : SF::RenderWindow)
