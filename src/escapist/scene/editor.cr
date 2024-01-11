@@ -35,7 +35,7 @@ module Escapist::Scene
       )
 
       @room_data = RoomData.load
-      @editor = RoomEditor.new(view, @room_data.first_room)
+      @editor = RoomEditor.new(view, Room.new(1, 1))
       @menu = false
       @menu_items = GSF::MenuItems.new(Font.default)
       @menu_rooms = false

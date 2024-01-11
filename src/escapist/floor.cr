@@ -11,12 +11,11 @@ module Escapist
 
     Padding = 56
 
-    def initialize(view, rooms, first_room : String)
+    def initialize(view, rooms, first_room_key : String)
       @view = view
       @player = Player.new(x: 0, y: 0)
       @rooms = rooms
-      @room_key = first_room
-      @previous_room_key = first_room
+      @room_key = first_room_key
       @room = rooms[@room_key]
     end
 

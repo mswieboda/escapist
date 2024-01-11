@@ -32,7 +32,7 @@ module Escapist::Scene
       @hud = HUD.new
 
       room_data = RoomData.load
-      first_room_key = room_data.first_room_key
+      first_room_key = room_data.rooms.keys.first
 
       if is_random_room || first_room_key.empty?
         first_room_key = room_data.rooms.keys.sample

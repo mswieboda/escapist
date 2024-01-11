@@ -5,24 +5,16 @@ module Escapist
     include JSON::Serializable
 
     getter rooms : Hash(String, Room)
-    getter first_room_key : String = ""
 
     FilePath = "./assets/room_data.dat"
 
     def initialize
       @rooms = Hash(String, Room).new
       room = Room.new(1, 1)
-      @first_room_key = room.id
-      @rooms[@first_room_key] = room
-    end
-
-    def first_room
-      @rooms[@first_room_key]
+      @rooms[room.id] = room
     end
 
     def update_room(room)
-      @first_room_key = room.id if first_room_key.empty?
-
       # TODO: add prompt to confirm overwrite, for now, always overwrite
       @rooms[room.id] = room
     end
