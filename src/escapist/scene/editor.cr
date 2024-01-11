@@ -1,12 +1,12 @@
 require "../room"
-require "../floor_data"
+require "../room_data"
 require "../room_editor"
 
 module Escapist::Scene
   class Editor < GSF::Scene
     getter view : View
     getter editor : RoomEditor
-    getter floor_data : FloorData
+    getter room_data : RoomData
     getter? menu
     getter menu_items
     getter? menu_rooms
@@ -34,8 +34,8 @@ module Escapist::Scene
         height: height / Screen.height
       )
 
-      @floor_data = FloorData.load
-      @editor = RoomEditor.new(view, @floor_data.first_room)
+      @room_data = RoomData.load
+      @editor = RoomEditor.new(view, @room_data.first_room)
       @menu = false
       @menu_items = GSF::MenuItems.new(Font.default)
       @menu_rooms = false
@@ -58,7 +58,7 @@ module Escapist::Scene
       @menu_items = GSF::MenuItems.new(
         font: Font.default,
         size: 32,
-        items: ["continue editing", "save floor", "new room", "load room", "exit"],
+        items: ["continue editing", "save room", "new room", "load room", "exit"],
         initial_focused_index: 0
       )
     end
@@ -112,7 +112,7 @@ module Escapist::Scene
       #       of where to place the door
       #       this will take additional UI, or just assign the next one for that door array
       new_room.add_door(opposite_door, editor.room.id, 0)
-      floor_data.update_room(new_room)
+      room_data.update_room(new_room)
     end
 
     def update_menu(frame_time, keys : Keys, mouse : Mouse, joysticks : Joysticks)
@@ -122,9 +122,9 @@ module Escapist::Scene
         case menu_items.focused_label
         when "continue editing"
           @menu = false
-        when "save floor"
-          floor_data.update_room(editor.room)
-          floor_data.save
+        when "save room"
+          room_data.update_room(editor.room)
+          room_data.save
           @menu = false
         when "new room"
           @new_item_index = 0
@@ -138,7 +138,7 @@ module Escapist::Scene
         when "load room"
           items = [] of String | Tuple(String, String)
 
-          floor_data.rooms.each do |id, room|
+          room_data.rooms.each do |id, room|
             items << {id, room.display_name}
           end
 
@@ -220,7 +220,7 @@ module Escapist::Scene
           return
         end
 
-        if found_room = floor_data.rooms[key]
+        if found_room = room_data.rooms[key]
           @editor.room = found_room
           @menu_rooms = false
         else

@@ -1,4 +1,4 @@
-require "../floor_data"
+require "../room_data"
 require "../floor"
 require "../hud"
 require "../room"
@@ -31,14 +31,14 @@ module Escapist::Scene
 
       @hud = HUD.new
 
-      floor_data = FloorData.load
-      first_room_key = floor_data.first_room_key
+      room_data = RoomData.load
+      first_room_key = room_data.first_room_key
 
       if is_random_room || first_room_key.empty?
-        first_room_key = floor_data.rooms.keys.sample
+        first_room_key = room_data.rooms.keys.sample
       end
 
-      @floor = Floor.new(view, floor_data.rooms, first_room_key)
+      @floor = Floor.new(view, room_data.rooms, first_room_key)
     end
 
     def width

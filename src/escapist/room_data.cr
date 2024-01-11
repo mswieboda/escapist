@@ -1,13 +1,13 @@
 require "json"
 
 module Escapist
-  class FloorData
+  class RoomData
     include JSON::Serializable
 
     getter rooms : Hash(String, Room)
     getter first_room_key : String = ""
 
-    FilePath = "./assets/floor_data.dat"
+    FilePath = "./assets/room_data.dat"
 
     def initialize
       @rooms = Hash(String, Room).new
