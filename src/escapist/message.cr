@@ -1,25 +1,30 @@
 module Escapist
   class Message
+    @width : Float32 | Int32
+    @height : Float32 | Int32
+    @typing_timer : Timer
+    @animate_timer : Timer
+
     getter cx : Float32 | Int32
     getter y : Float32 | Int32
     getter message : String
     getter text : SF::Text
-    getter width : Float32 | Int32
     getter max_width : Float32 | Int32
-    getter height : Float32 | Int32
     getter? typing
     getter message_typed : String
+    getter? animate
 
     Padding = 64
     FontSize = 28
     LineSpacing = 2.25
     TypeDuration = 69.milliseconds
+    AnimateDuration = 300.milliseconds
     BackgroundColor = SF::Color.new(17, 17, 17, 170)
     TextColor = SF::Color::White
     OutlineColor = SF::Color.new(102, 102, 102)
     OutlineThickness = 8
 
-    def initialize(@cx, @y, @max_width, @message = "", @typing = false)
+    def initialize(@cx, @y, @max_width, @message = "", @typing = false, @animate = false)
       @text = SF::Text.new(message, Font.default, FontSize)
       @text.line_spacing = LineSpacing
       @text.fill_color = TextColor
@@ -37,15 +42,34 @@ module Escapist
 
       @text.string = typing? ? "" : @message
 
+      @animate_timer = Timer.new(AnimateDuration)
+
       @text.position = {x, y}
     end
 
     def start
       @typing_timer.start
+      @animate_timer.start if animate?
     end
 
     def x
       cx - width / 2
+    end
+
+    def width
+      if animate?
+        @width * [@animate_timer.percent, 1].min
+      else
+        @width
+      end
+    end
+
+    def height
+      if animate?
+        @height * [@animate_timer.percent, 1].min
+      else
+        @height
+      end
     end
 
     def calc_lines
@@ -78,6 +102,8 @@ module Escapist
         text.string = @message[0..index]
       end
 
+      @text.position = {x, y} if animate?
+
       window.draw(text)
     end
 
@@ -94,13 +120,14 @@ module Escapist
   end
 
   class CenteredMessage < Message
-    def initialize(screen_width, screen_height, message = "", typing = false)
+    def initialize(screen_width, screen_height, message = "", typing = true, animate = true)
       super(
         cx: (screen_width / 2).to_i,
         y: (screen_height / 2 + screen_height / 4).to_i,
         max_width: (screen_width / 2.5).to_i,
         message: message,
-        typing: typing
+        typing: typing,
+        animate: animate
       )
     end
   end

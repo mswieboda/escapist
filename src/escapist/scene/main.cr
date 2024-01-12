@@ -3,6 +3,7 @@ require "../floor"
 require "../hud"
 require "../room"
 require "../block"
+require "../message"
 
 module Escapist::Scene
   class Main < GSF::Scene
@@ -39,6 +40,13 @@ module Escapist::Scene
       end
 
       @floor = Floor.new(view, room_data.rooms, first_room_key)
+
+      @message = CenteredMessage.new(
+        screen_width: width,
+        screen_height: height,
+        message: "This is just a test. Stay calm, there is no reason to be alarmed. Everything will be fine. Uh... I think."
+      )
+      @message.start
     end
 
     def width
@@ -66,6 +74,7 @@ module Escapist::Scene
 
       view.set_default_current
 
+      @message.draw(window)
       draw_border(window)
       hud.draw(window)
     end
