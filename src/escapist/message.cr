@@ -7,31 +7,41 @@ module Escapist
     getter width : Float32 | Int32
     getter max_width : Float32 | Int32
     getter height : Float32 | Int32
-    getter lines : Array(String)
+    getter? typing
+    getter message_typed : String
 
     Padding = 64
-    FontSize = 22
+    FontSize = 28
+    LineSpacing = 2.25
+    TypeDuration = 69.milliseconds
     BackgroundColor = SF::Color.new(17, 17, 17, 170)
     TextColor = SF::Color::White
     OutlineColor = SF::Color.new(102, 102, 102)
     OutlineThickness = 8
 
-    def initialize(@cx, @y, @max_width, @message = "")
+    def initialize(@cx, @y, @max_width, @message = "", @typing = false)
       @text = SF::Text.new(message, Font.default, FontSize)
-      @text.line_spacing = 2
+      @text.line_spacing = LineSpacing
       @text.fill_color = TextColor
 
       text_width = @text.global_bounds.width
 
       @width = [text_width, @max_width].min
-      @lines = @width < text_width ? calc_lines : [@message]
-      @text.string = lines.join("\n")
+      lines = @width < text_width ? calc_lines : [@message]
+      @message = lines.join("\n")
+      @text.string = @message
       @height = @text.global_bounds.height
 
-      # TODO: clear text to animate it
-      # @text.string = ""
+      @typing_timer = Timer.new(TypeDuration * @message.size)
+      @message_typed = ""
+
+      @text.string = typing? ? "" : @message
 
       @text.position = {x, y}
+    end
+
+    def start
+      @typing_timer.start
     end
 
     def x
@@ -48,10 +58,10 @@ module Escapist
       message.split.each do |word|
         if lines[line_index].size + word.size > chars_per_line
           line_index += 1
-          lines << word
-        else
-          lines[line_index] += "#{word} "
+          lines << ""
         end
+
+        lines[line_index] += "#{word} "
       end
 
       lines
@@ -63,6 +73,11 @@ module Escapist
     end
 
     def draw_text(window)
+      if typing?
+        index = (@message.size * [@typing_timer.percent, 1].min).to_i
+        text.string = @message[0..index]
+      end
+
       window.draw(text)
     end
 
@@ -75,6 +90,18 @@ module Escapist
       rect.position = {x - Padding, y - Padding}
 
       window.draw(rect)
+    end
+  end
+
+  class CenteredMessage < Message
+    def initialize(screen_width, screen_height, message = "", typing = false)
+      super(
+        cx: (screen_width / 2).to_i,
+        y: (screen_height / 2 + screen_height / 4).to_i,
+        max_width: (screen_width / 2.5).to_i,
+        message: message,
+        typing: typing
+      )
     end
   end
 end
