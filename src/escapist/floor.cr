@@ -3,11 +3,11 @@ require "./player"
 module Escapist
   class Floor
     @room : Room | Nil
-    @room_key : String
 
     getter view : View
     getter player
     getter rooms : Hash(String, Room)
+    getter room_key : String
 
     Padding = 56
 

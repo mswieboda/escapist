@@ -1,14 +1,14 @@
 require "../floor_data"
 require "../floor"
 require "../hud"
-require "../room"
-require "../block"
+require "../mini_map"
 
 module Escapist::Scene
   class Main < GSF::Scene
     getter view : View
     getter hud
     getter floor
+    getter mini_map
 
     TopBorder = 64
     BottomBorder = 64
@@ -34,6 +34,7 @@ module Escapist::Scene
       floor_data = FloorData.new
 
       @floor = Floor.new(view, floor_data.rooms, floor_data.first_room_key)
+      @mini_map = MiniMap.new(Screen.width - HorizontalBorder, TopBorder, floor_data, @floor)
     end
 
     def width
@@ -62,6 +63,9 @@ module Escapist::Scene
       view.set_default_current
 
       draw_border(window)
+
+      mini_map.draw(window)
+
       hud.draw(window)
     end
 

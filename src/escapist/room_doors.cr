@@ -14,6 +14,8 @@ module Escapist
     @[JSON::Field(ignore: true)]
     getter entered : DoorKey
 
+    SectionTiles = 15 # same as room.cr, TODO: share somewhere
+    TileSize = 128 # same as room.cr, TODO: share somewhere
     Depth = 96
     Width = 256
     Color = SF::Color.new(13, 13, 13)
@@ -36,19 +38,43 @@ module Escapist
       @entered = nil
     end
 
-    def door_center(doors, index, room_width, room_height, horz = true, far = false)
-      cx = !horz && far ? room_width : 0
-      cy = horz && far ? room_height : 0
-      spacing = (horz ? room_width : room_height) / (doors.size * 2)
+    def section_size
+      SectionTiles * TileSize
+    end
 
+    def door_center(doors, index, room_width, room_height, horz = true, far = false)
       if horz
-        cx = spacing + room_width / doors.size * index
+        cx = section_size / 2 + section_size * index
+        cy = 0
       else
-        cy = spacing + room_height / doors.size * index
+        cx = 0
+        cy = section_size / 2 + section_size * index
+      end
+
+      if far
+        if horz
+          cy += room_height
+        else
+          cx += room_width
+        end
       end
 
       {cx.to_f32, cy.to_f32}
     end
+
+    # def door_center(doors, index, room_width, room_height, horz = true, far = false)
+    #   cx = !horz && far ? room_width : 0
+    #   cy = horz && far ? room_height : 0
+    #   spacing = (horz ? room_width : room_height) / (doors.size * 2)
+
+    #   if horz
+    #     cx = spacing + room_width / doors.size * index
+    #   else
+    #     cy = spacing + room_height / doors.size * index
+    #   end
+
+    #   {cx.to_f32, cy.to_f32}
+    # end
 
     def check_all_doors(player : Player, keys : Keys, room_width, room_height)
       [

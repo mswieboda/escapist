@@ -1,7 +1,7 @@
 module Escapist
   class FloorData
     FirstRoomKey = "start"
-    MAX_ROOM_SIZE = 5
+    MaxRooms = 5
 
     getter room_data : RoomData
     getter rooms : Hash(String, Room)
@@ -17,7 +17,11 @@ module Escapist
       @rooms[room.key] = room
       @grid << [room.key]
 
-      generate(first_room_key)
+      generate(first_room_key, 0, 0)
+
+      puts ">>> grid:"
+      display_grid
+      puts
     end
 
     def self.first_room_key
@@ -28,67 +32,113 @@ module Escapist
       self.class.first_room_key
     end
 
-    def generate(from_room_key)
-      return if rooms.size >= MAX_ROOM_SIZE
+    def generate(from_room_key, row_index, col_index)
+      return if rooms.size >= MaxRooms
 
       from_room = rooms[from_room_key]
-      row_index = rand(1..from_room.s_rows) - 1
-      col_index = rand(1..from_room.s_cols) - 1
+      door_row_index = rand(1..from_room.s_rows) - 1
+      door_col_index = 0
+
+      if door_row_index == 0 || door_row_index == from_room.s_rows - 1
+        door_col_index = rand(1..from_room.s_cols) - 1
+      else
+        door_col_index = [0, from_room.s_cols - 1].sample
+      end
 
       # TODO: randomize this from RoomData.rooms
       next_room = Room.new(rand(1..3), rand(1..3))
+      success, row_index, col_index = add_room(
+        row_index, col_index, door_row_index, door_col_index, from_room, next_room
+      )
 
-      if add_room(row_index, col_index, DoorConfig.sample, from_room, next_room)
+      if success
         rooms[next_room.key] = next_room
 
-        generate(next_room.key)
+        puts ">>> generate #{from_room_key}:"
+        display_grid
+
+        generate(next_room.key, row_index, col_index)
       else
-        generate(from_room_key)
+        puts ">>> generate #{from_room_key}:"
+        display_grid
+
+        generate(from_room_key, row_index, col_index)
       end
     end
 
-    def add_room(row_index, col_index, door : DoorConfig, from_room : Room, room : Room)
-      new_row_index = row_index + door.drow
-      new_col_index = col_index + door.dcol
+    def add_room(row_index, col_index, door_row_index, door_col_index, from_room : Room, room : Room)
+      puts ">>> add_room #{{row_index: row_index, col_index: col_index, door_row_index: door_row_index, door_col_index: door_col_index, from_room: [from_room.s_rows, from_room.s_cols], room: [room.s_rows, room.s_cols]}}"
+
+      door = get_random_door(from_room, door_row_index, door_col_index)
+      new_row_index = row_index + door_row_index + door.drow
+      new_col_index = col_index + door_col_index + door.dcol
+      from_door_section_index = door.drow.abs > 0 ? door_row_index : door_col_index
       door_section_index = door.drow.abs > 0 ? rand(room.s_cols) : rand(room.s_rows)
 
-      previous_grid = grid.dup
+      puts ">>> add_room #{{door: door.name, new_row_index: new_row_index, new_col_index: new_col_index, from_door_section_index: from_door_section_index, door_section_index: door_section_index}}"
 
-      # puts ">>> add_room #{[new_row_index, new_col_index]} #{{door_section_index: door_section_index, door: door.name, room: [room.s_rows, room.s_cols]}}"
-
+      previous_grid = grid.clone
       rows_to_insert, cols_to_insert = resize_grid(
         new_row_index, new_col_index, door_section_index, door, room
       )
-
       room_r_index, room_c_index = room_indexes(
         new_row_index, new_col_index, rows_to_insert, cols_to_insert,
-        door_section_index, door
+        from_door_section_index, door_section_index, door
       )
+
+      puts ">>> add_room #{{rows_to_insert: rows_to_insert, cols_to_insert: cols_to_insert, room_r_index: room_r_index, room_c_index: room_c_index}}"
+
+      display_grid
 
       if room_collision?(room_r_index, room_c_index, room)
-        # put grid back before insert/add
-        grid = previous_grid
+        @grid = previous_grid
 
-        return false
+        return {false, row_index, col_index}
       end
 
-      set_grid_room_keys(
-        new_row_index, new_col_index, rows_to_insert, cols_to_insert,
-        door_section_index, door, room
-      )
+      set_grid_room_keys(room_r_index, room_c_index, room)
+      set_doors(door, from_door_section_index, door_section_index, from_room, room)
 
-      set_doors(row_index, col_index, door, door_section_index, from_room, room)
-
-      true
+      {true, room_r_index, room_c_index}
     end
 
-    def room_indexes(r_index, c_index, r_insert, c_insert, door_section_index, door)
+    def get_random_door(from_room, door_row_index, door_col_index)
+      if door_row_index == 0
+        if door_col_index == 0
+          [DoorConfig.top, DoorConfig.left].sample
+        elsif door_col_index == from_room.s_cols - 1
+          [DoorConfig.top, DoorConfig.right].sample
+        else
+          DoorConfig.top
+        end
+      elsif door_row_index > 0 && door_row_index < from_room.s_rows - 1
+        if door_col_index == 0
+          DoorConfig.left
+        else
+          DoorConfig.right
+        end
+      else
+        if door_col_index == 0
+          [DoorConfig.bottom, DoorConfig.left].sample
+        elsif door_col_index == from_room.s_cols - 1
+          [DoorConfig.bottom, DoorConfig.right].sample
+        else
+          DoorConfig.bottom
+        end
+      end
+    end
+
+    def room_indexes(r_index, c_index, r_insert, c_insert, from_door_section_index, door_section_index, door)
       room_r_index = r_insert > 0 ? 0 : r_index
       room_c_index = c_insert > 0 ? 0 : c_index
 
-      # apply door_section_index
-      room_r_index -= door_section_index if door.dcol.abs > 0
-      room_c_index -= door_section_index if door.drow.abs > 0
+      # # apply from_door_section_index
+      # room_r_index += from_door_section_index if door.dcol.abs > 0
+      # room_c_index += from_door_section_index if door.drow.abs > 0
+
+      # # apply door_section_index
+      # room_r_index += door_section_index if door.dcol.abs > 0
+      # room_c_index += door_section_index if door.drow.abs > 0
 
       {room_r_index, room_c_index}
     end
@@ -180,19 +230,7 @@ module Escapist
       cols_to_add
     end
 
-    def set_grid_room_keys(
-      new_row_index, new_col_index, rows_to_insert, cols_to_insert,
-      door_section_index, door, room
-    )
-      room_r_index = rows_to_insert > 0 ? 0 : new_row_index
-      room_c_index = cols_to_insert > 0 ? 0 : new_col_index
-
-      # apply door_section_index
-      room_r_index -= door_section_index if door.dcol.abs > 0
-      room_c_index -= door_section_index if door.drow.abs > 0
-
-      # puts ">>> set_grid_room_keys #{[room_r_index, room_c_index]}"
-
+    def set_grid_room_keys(room_r_index, room_c_index, room)
       room.s_rows.times do |s_row_i|
         grid_row_index = room_r_index + s_row_i
         row = grid[grid_row_index]
@@ -210,34 +248,34 @@ module Escapist
       end
     end
 
-    def set_doors(row_index, col_index, door, door_section_index, from_room, room)
-      doors, from_door_section_index = doors_door_section_index(
-        door.name, from_room, row_index, col_index
-      )
+    def set_doors(door, from_door_section_index, door_section_index, from_room, room)
+      # from_room
+      doors = room_doors(from_room, door.name)
 
       add_empty_doors(doors, from_door_section_index)
 
       doors[from_door_section_index] = room.key
 
-      doors, _ = doors_door_section_index(door.opposite, room)
+      # room
+      doors = room_doors(room, door.opposite)
 
       add_empty_doors(doors, door_section_index)
 
       doors[door_section_index] = from_room.key
     end
 
-    def doors_door_section_index(door_name, room, col_index = 0, row_index = 0)
+    def room_doors(room, door_name)
       case door_name
       when :top
-        {room.doors.top, col_index}
+        room.doors.top
       when :left
-        {room.doors.left, row_index}
+        room.doors.left
       when :bottom
-        {room.doors.bottom, col_index}
+        room.doors.bottom
       when :right
-        {room.doors.right, row_index}
+        room.doors.right
       else
-        {room.doors.top, col_index}
+        room.doors.top
       end
     end
 
@@ -250,7 +288,6 @@ module Escapist
     end
 
     def display_grid
-      puts grid
       grid.each do |row|
         puts row.map { |c| c == "" ? "X" : c[0] }.join
       end
@@ -258,7 +295,6 @@ module Escapist
   end
 
   struct DoorConfig
-    # @@values : Array(DoorConfig)?
     Top = DoorConfig.new(:top, -1_i8, 0_i8, :bottom, :right)
     Left = DoorConfig.new(:left, 0_i8, -1_i8, :right, :top)
     Bottom = DoorConfig.new(:bottom, 1_i8, 0_i8, :top, :left)
@@ -272,14 +308,6 @@ module Escapist
     getter clockwise : Symbol
 
     def initialize(@name, @drow, @dcol, @opposite, @clockwise)
-    end
-
-    def self.values
-      All
-    end
-
-    def self.sample
-      values.sample
     end
 
     def self.top
