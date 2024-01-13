@@ -13,7 +13,7 @@ module Escapist
     alias TileRow = Hash(Int32, TileObj)
     alias TileGrid = Hash(Int32, TileRow)
 
-    getter id : String
+    getter key : String
     getter s_cols : Int32
     getter s_rows : Int32
     getter tiles : TileGrid = TileGrid.new
@@ -31,18 +31,17 @@ module Escapist
     TileGridColor = SF::Color.new(13, 13, 13)
     TileGridOutlineThickness = 2
 
-    def initialize(@s_cols, @s_rows)
-      @id = UUID.random.to_s
+    def initialize(@s_rows = 1, @s_cols = 1, @key = UUID.random.to_s)
       @tiles = TileGrid.new
       @doors = RoomDoors.new
     end
 
-    def cols
-      s_cols * SectionTiles
-    end
-
     def rows
       s_rows * SectionTiles
+    end
+
+    def cols
+      s_cols * SectionTiles
     end
 
     def width

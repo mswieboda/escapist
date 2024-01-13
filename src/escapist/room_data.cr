@@ -9,14 +9,14 @@ module Escapist
     FilePath = "./assets/room_data.dat"
 
     def initialize
-      @rooms = Hash(String, Room).new
       room = Room.new(1, 1)
-      @rooms[room.id] = room
+      @rooms = Hash(String, Room).new
+      @rooms[room.key] = room
     end
 
     def update_room(room)
       # TODO: add prompt to confirm overwrite, for now, always overwrite
-      @rooms[room.id] = room
+      @rooms[room.key] = room
     end
 
     def remove_room(id)

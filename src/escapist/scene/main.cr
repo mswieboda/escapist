@@ -1,4 +1,4 @@
-require "../room_data"
+require "../floor_data"
 require "../floor"
 require "../hud"
 require "../room"
@@ -16,7 +16,7 @@ module Escapist::Scene
     HorizontalBorder = 16
     RoomSection = 15
 
-    def initialize(window, is_random_room = false)
+    def initialize(window)
       super(:main)
 
       @view = View.from_default(window).dup
@@ -32,14 +32,9 @@ module Escapist::Scene
 
       @hud = HUD.new
 
-      room_data = RoomData.load
-      first_room_key = room_data.rooms.keys.first
+      floor_data = FloorData.new
 
-      if is_random_room || first_room_key.empty?
-        first_room_key = room_data.rooms.keys.sample
-      end
-
-      @floor = Floor.new(view, room_data.rooms, first_room_key)
+      @floor = Floor.new(view, floor_data.rooms, floor_data.first_room_key)
 
       @message = CenteredMessage.new(
         screen_width: width,

@@ -35,8 +35,6 @@ module Escapist
       case key
       when :main
         switch(Scene::Main.new(window))
-      when :main_random
-        switch(Scene::Main.new(window, is_random_room: true))
       when :editor
         switch(Scene::Editor.new(window))
       end

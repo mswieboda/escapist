@@ -10,7 +10,7 @@ module Escapist::Scene
       @items = GSF::MenuItems.new(
         font: Font.default,
         size: 64,
-        items: ["start", "random", "editor", "exit"],
+        items: ["start", "editor", "exit"],
         initial_focused_index: 0
       )
     end
@@ -28,8 +28,6 @@ module Escapist::Scene
         case items.focused_label
         when "start"
           @start_scene = :main
-        when "random"
-          @start_scene = :main_random
         when "editor"
           @start_scene = :editor
         when "exit"

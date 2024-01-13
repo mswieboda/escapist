@@ -107,11 +107,11 @@ module Escapist::Scene
           {0, :bottom}
         end
 
-      editor.room.add_door(door, new_room.id, cell_index)
+      editor.room.add_door(door, new_room.key, cell_index)
       # TODO: not sure how to choose the opposite room's cell_index/section_index
       #       of where to place the door
       #       this will take additional UI, or just assign the next one for that door array
-      new_room.add_door(opposite_door, editor.room.id, 0)
+      new_room.add_door(opposite_door, editor.room.key, 0)
       room_data.update_room(new_room)
     end
 
@@ -138,8 +138,8 @@ module Escapist::Scene
         when "load room"
           items = [] of String | Tuple(String, String)
 
-          room_data.rooms.each do |id, room|
-            items << {id, room.display_name}
+          room_data.rooms.each do |key, room|
+            items << {key, room.display_name}
           end
 
           items << "back"

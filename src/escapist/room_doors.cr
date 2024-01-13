@@ -1,3 +1,5 @@
+require "json"
+
 module Escapist
   class RoomDoors
     include JSON::Serializable
