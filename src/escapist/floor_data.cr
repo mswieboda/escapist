@@ -116,40 +116,44 @@ module Escapist
 
     def get_random_door(from_room, door_row_index, door_col_index)
       if door_row_index == 0
-        doors = [DoorConfig.top]
-
-        if door_col_index == 0
-          doors << DoorConfig.left
-
-          if from_room.s_rows == 1
-            doors << DoorConfig.bottom
-          elsif from_room.s_cols == 1
-            doors << DoorConfig.right
-          end
-        elsif door_col_index == from_room.s_cols - 1
-          doors << DoorConfig.right
-          doors << DoorConfig.bottom if from_room.s_rows == 1
-        end
-
-        doors.sample
+        get_random_door_first_row(from_room, door_col_index)
       elsif door_row_index > 0 && door_row_index < from_room.s_rows - 1
-        if door_col_index == 0
-          DoorConfig.left
-        else
-          DoorConfig.right
-        end
+        door_col_index == 0 ? DoorConfig.left : DoorConfig.right
       else # last row
-        doors = [DoorConfig.bottom]
+        get_random_door_last_row(from_room, door_col_index)
+      end
+    end
 
-        if door_col_index == 0
-          doors << DoorConfig.left
-          doors << DoorConfig.right if from_room.s_cols == 1
-        elsif door_col_index == from_room.s_cols - 1
+    def get_random_door_first_row(from_room, door_col_index)
+      doors = [DoorConfig.top]
+
+      if door_col_index == 0
+        doors << DoorConfig.left
+
+        if from_room.s_rows == 1
+          doors << DoorConfig.bottom
+        elsif from_room.s_cols == 1
           doors << DoorConfig.right
         end
-
-        doors.sample
+      elsif door_col_index == from_room.s_cols - 1
+        doors << DoorConfig.right
+        doors << DoorConfig.bottom if from_room.s_rows == 1
       end
+
+      doors.sample
+    end
+
+    def get_random_door_last_row(from_room, door_col_index)
+      doors = [DoorConfig.bottom]
+
+      if door_col_index == 0
+        doors << DoorConfig.left
+        doors << DoorConfig.right if from_room.s_cols == 1
+      elsif door_col_index == from_room.s_cols - 1
+        doors << DoorConfig.right
+      end
+
+      doors.sample
     end
 
     def room_indexes(r_index, c_index, r_insert, c_insert, from_door_section_index, door_section_index, door)
