@@ -90,7 +90,7 @@ module Escapist
 
       # puts ">>> add_room #{{rows_to_insert: rows_to_insert, cols_to_insert: cols_to_insert, room_r_index: room_r_index, room_c_index: room_c_index}}"
 
-      display_grid
+      # display_grid
 
       if room_collision?(room_r_index, room_c_index, room)
         @grid = previous_grid
