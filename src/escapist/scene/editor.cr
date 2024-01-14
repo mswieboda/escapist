@@ -222,6 +222,7 @@ module Escapist::Scene
         end
 
         if found_room = room_data.rooms[key]
+          @editor.cursor.jump_to(0, 0)
           @editor.room = found_room
           @menu_rooms = false
         else
