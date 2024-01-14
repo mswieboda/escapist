@@ -1,4 +1,5 @@
 require "./box"
+require "./movable_block"
 
 module Escapist
   class Player
@@ -91,6 +92,23 @@ module Escapist
       collidables = room.tiles_near(x + dx, y + dy).select(&.collidable?)
 
       collidables.each do |tile_obj|
+        if movable_block = tile_obj.is_a?(MovableBlock) && tile_obj.as(MovableBlock)
+          if collision?(tile_obj.collision_box, dx, dy)
+            # slow down / 2 when moving stuff
+            speed = sprinting? ? SprintSpeed : Speed
+            directional_speed = dx != 0 && dy != 0 ? speed / 1.4142 : speed
+
+            dx = ((dx / directional_speed) * Speed / 2).to_f32
+            dy = ((dy / directional_speed) * Speed / 2).to_f32
+
+            # TODO: fix this so it doesn't move in both directions
+            #       only move dy if coming from bottom, for example
+            # TODO: also fix moving past walls or through other collidables
+            #       this is gonna suck :)
+            tile_obj.move(dx, dy)
+          end
+        end
+
         dx = 0 if collision?(tile_obj.collision_box, dx)
         dy = 0 if collision?(tile_obj.collision_box, 0, dy)
 

@@ -2,7 +2,7 @@ require "./tile_obj"
 
 module Escapist
   abstract class Switch < TileObj
-    Key = "sw"
+    Key = "switch"
 
     use_json_discriminator "switch", {floor: FloorSwitch}
 
@@ -10,7 +10,7 @@ module Escapist
     property? on
 
     def initialize(@switch, col = 0, row = 0, @on = false)
-      super("switch", col, row)
+      super(Key, col, row)
     end
 
     def self.key

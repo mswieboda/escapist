@@ -1,5 +1,7 @@
 require "./cursor"
 require "./block"
+require "./movable_block"
+require "./floor_switch"
 
 module Escapist
   class RoomEditor
@@ -13,7 +15,7 @@ module Escapist
 
     Padding = 56
 
-    PlaceTypes = [nil, :block, :floor_switch]
+    PlaceTypes = [nil, :block, :movable_block, :floor_switch]
 
     PlaceSound = SF::SoundBuffer.from_file("./assets/cursor.wav")
     PlaceSoundPitchDecrease = 0.33
@@ -144,6 +146,8 @@ module Escapist
         case place_type_sym
           when :block
             Block.new(cursor.col, cursor.row).draw(window)
+          when :movable_block
+            MovableBlock.new(cursor.col, cursor.row).draw(window)
           when :floor_switch
             FloorSwitch.new(cursor.col, cursor.row).draw(window)
         end

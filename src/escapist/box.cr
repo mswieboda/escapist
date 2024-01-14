@@ -17,8 +17,8 @@ module Escapist
       other_bottom = other.y + other.height
 
       # check if boxes overlap on both axes
-      (x < other_right && right > other.x) &&
-        (y < other_bottom && bottom > other.y)
+      (x <= other_right && right >= other.x) &&
+        (y <= other_bottom && bottom >= other.y)
     end
   end
 end

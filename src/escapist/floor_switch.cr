@@ -2,7 +2,7 @@ require "./switch"
 
 module Escapist
   class FloorSwitch < Switch
-    Key = "fsw"
+    Key = "floor"
     BackgroundColor = SF::Color.new(153, 153, 153, 30)
     OnColor = SF::Color.new(35, 35, 35)
     OffColor = SF::Color.new(51, 51, 51)
@@ -16,7 +16,7 @@ module Escapist
     OnSound.volume = OnSoundVolume
 
     def initialize(col = 0, row = 0, on = false)
-      super("floor", col, row, on)
+      super(Key, col, row, on)
     end
 
     def self.key

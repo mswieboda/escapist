@@ -2,6 +2,7 @@ require "./player"
 require "./room_doors"
 require "./tile_obj"
 require "./block"
+require "./movable_block"
 require "./floor_switch"
 require "json"
 require "uuid"
@@ -71,15 +72,28 @@ module Escapist
       end
     end
 
+    def move_tile_obj(col, row, new_col, new_row)
+      if tiles[col].has_key?(row)
+        if tile_obj = tiles[col].delete(row)
+          tiles.delete(col) if tiles[col].keys.empty?
+
+          tiles[new_col] = TileRow.new unless tiles.has_key?(new_col)
+          tiles[new_col][new_row] = tile_obj
+        end
+      end
+    end
+
     def add_tile_obj(place_type : Symbol, col, row)
       tile = case place_type
-        when :block
-          Block.new(col, row)
-        when :floor_switch
-          FloorSwitch.new(col, row)
-        else
-          Block.new(col, row)
-        end
+      when :block
+        Block.new(col, row)
+      when :movable_block
+        MovableBlock.new(col, row)
+      when :floor_switch
+        FloorSwitch.new(col, row)
+      else
+        Block.new(col, row)
+      end
 
       tiles[col] = TileRow.new unless tiles.has_key?(col)
       tiles[col][row] = tile
@@ -116,6 +130,18 @@ module Escapist
     def update(p : Player | Nil, keys : Keys)
       if player = p
         doors.update(player, keys, width, height)
+      end
+
+      update_tiles
+    end
+
+    def update_tiles
+      tiles.each do |col, col_tiles|
+        col_tiles.each do |row, tile_obj|
+          if col != tile_obj.col || row != tile_obj.row
+            move_tile_obj(col, row, tile_obj.col, tile_obj.row)
+          end
+        end
       end
     end
 

@@ -5,7 +5,7 @@ module Escapist
   abstract class TileObj
     include JSON::Serializable
 
-    use_json_discriminator "type", {block: Block, switch: Switch}
+    use_json_discriminator "type", {block: BaseBlock, switch: Switch}
 
     property type : String = "block"
     getter col : Int32 = 0
@@ -82,12 +82,6 @@ module Escapist
     def jump_to(col, row)
       @col = col
       @row = row
-    end
-
-    def to_tile_data
-      {
-        "key" => self.class.key
-      }
     end
   end
 end

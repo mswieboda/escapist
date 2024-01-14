@@ -1,14 +1,18 @@
 require "./tile_obj"
 
 module Escapist
-  class Block < TileObj
-    Key = "blk"
+  class BaseBlock < TileObj
+    use_json_discriminator "block", {block: Block, movable: MovableBlock}
+
+    property block : String
+
+    Key = "block"
     Color = SF::Color.new(153, 153, 153, 30)
     OutlineColor = SF::Color.new(102, 102, 102)
     OutlineThickness = 4
 
-    def initialize(col = 0, row = 0)
-      super("block", col, row)
+    def initialize(@block, col = 0, row = 0)
+      super(Key, col, row)
     end
 
     def self.key
@@ -28,6 +32,18 @@ module Escapist
       rect.position = {x, y}
 
       window.draw(rect)
+    end
+  end
+
+  class Block < BaseBlock
+    Key = "block"
+
+    def initialize(col = 0, row = 0)
+      super(Key, col, row)
+    end
+
+    def self.key
+      Key
     end
   end
 end
