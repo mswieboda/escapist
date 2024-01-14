@@ -109,33 +109,43 @@ module Escapist
         if collision?(tile_obj.collision_box, dx, dy)
           dx, dy = movable_speed(dx, dy)
 
-          # TODO: fix moving past walls or through other collidables
-          #       this is gonna suck :)
+          tile_obj_dx = 0
+          tile_obj_dy = 0
 
-          # NOTE: checks ensure movable can't move in both directions simultaneously
+          # checks ensure movable can't move in both directions simultaneously
           if dx.abs > 0 && left_or_right_of_movable?(tile_obj)
-            adjusted_dx = if dx > 0
+            tile_obj_dx = if dx > 0
               dx * 1.5 + [x + size - tile_obj.x, 0].min
             else
               dx * 1.5 + [x - tile_obj.x + tile_obj.size, 0].min
             end
-
-            tile_obj.move(adjusted_dx, 0)
-
-            return {dx, dy}
           elsif dy.abs > 0 && above_or_below_of_movable?(tile_obj)
-            adjusted_dy = if dy > 0
+            tile_obj_dy = if dy > 0
               dy * 1.5 + [y + size - tile_obj.y, 0].min
             else
               dy * 1.5 + [y - tile_obj.y + tile_obj.size, 0].min
             end
-
-            tile_obj.move(0, adjusted_dy)
-
-            return {dx, dy}
           end
+
+          # stops moving past room walls
+          tile_obj_dx, tile_obj_dy = wall_collision(tile_obj, tile_obj_dx, tile_obj_dy, room)
+
+          return nil if tile_obj_dx == 0 && tile_obj_dy == 0
+
+          # TODO: fix moving past other collidables
+
+          tile_obj.move(tile_obj_dx, tile_obj_dy)
+
+          return {dx, dy}
         end
       end
+    end
+
+    def wall_collision(tile_obj, dx, dy, room)
+      dx = 0 if tile_obj.x + dx < 0 || tile_obj.x + dx + tile_obj.size > room.width
+      dy = 0 if tile_obj.y + dy < 0 || tile_obj.y + dy + tile_obj.size > room.height
+
+      {dx, dy}
     end
 
     def area_checks(room)
