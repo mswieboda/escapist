@@ -13,6 +13,8 @@ module Escapist
     getter? typing
     getter message_typed : String
     getter? animate
+    getter? show
+    getter? hide
 
     Padding = 64
     FontSize = 28
@@ -44,12 +46,50 @@ module Escapist
 
       @animate_timer = Timer.new(AnimateDuration)
 
+      @show = false
+      @hide = false
+
       @text.position = {x, y}
     end
 
-    def start
-      @typing_timer.start
-      @animate_timer.start if animate?
+    def update(keys : Keys)
+      return if hide?
+
+      if animate? && @animate_timer.done?
+        if show?
+          @typing_timer.start if !@typing_timer.started?
+        else
+          @hide = true
+          return
+        end
+      end
+
+      if keys.just_pressed?([Keys::Enter, Keys::Space, Keys::E])
+        if @typing_timer.done?
+          hide
+        else
+          @typing_timer.duration = 0.milliseconds
+        end
+      end
+    end
+
+    def show
+      @show = true
+
+      if animate?
+        @animate_timer.start
+      else
+        @typing_timer.start
+      end
+    end
+
+    def hide
+      if animate?
+        @show = false
+        @animate_timer.start
+      else
+        @hide = true
+      end
     end
 
     def x
@@ -58,7 +98,11 @@ module Escapist
 
     def width
       if animate?
-        @width * [@animate_timer.percent, 1].min
+        if show?
+          @width * [@animate_timer.percent, 1].min
+        else
+          @width * (1 - [@animate_timer.percent, 1].min)
+        end
       else
         @width
       end
@@ -66,7 +110,11 @@ module Escapist
 
     def height
       if animate?
-        @height * [@animate_timer.percent, 1].min
+        if show?
+          @height * [@animate_timer.percent, 1].min
+        else
+          @height * (1 - [@animate_timer.percent, 1].min)
+        end
       else
         @height
       end
@@ -92,8 +140,10 @@ module Escapist
     end
 
     def draw(window : SF::RenderWindow)
+      return if hide?
+
       draw_border(window)
-      draw_text(window)
+      draw_text(window) if show?
     end
 
     def draw_text(window)
