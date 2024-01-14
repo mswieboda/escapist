@@ -19,9 +19,11 @@ module Escapist
 
       generate(first_room_key, 0, 0)
 
-      puts ">>> grid:"
-      display_grid
-      puts
+      set_doors
+
+      # puts ">>> grid:"
+      # display_grid
+      # puts
     end
 
     def self.first_room_key
@@ -54,20 +56,20 @@ module Escapist
       if success
         rooms[next_room.key] = next_room
 
-        puts ">>> generate #{from_room_key}:"
-        display_grid
+        # puts ">>> generate #{from_room_key} to #{next_room.key[0]}:"
+        # display_grid
 
         generate(next_room.key, row_index, col_index)
       else
-        puts ">>> generate #{from_room_key}:"
-        display_grid
+        # puts ">>> generate #{from_room_key} to #{next_room.key[0]}:"
+        # display_grid
 
         generate(from_room_key, row_index, col_index)
       end
     end
 
     def add_room(row_index, col_index, door_row_index, door_col_index, from_room : Room, room : Room)
-      puts ">>> add_room #{{row_index: row_index, col_index: col_index, door_row_index: door_row_index, door_col_index: door_col_index, from_room: [from_room.s_rows, from_room.s_cols], room: [room.s_rows, room.s_cols]}}"
+      # puts ">>> add_room #{{row_index: row_index, col_index: col_index, door_row_index: door_row_index, door_col_index: door_col_index, from_room: [from_room.s_rows, from_room.s_cols], room: [room.s_rows, room.s_cols]}}"
 
       door = get_random_door(from_room, door_row_index, door_col_index)
       new_row_index = row_index + door_row_index + door.drow
@@ -75,7 +77,7 @@ module Escapist
       from_door_section_index = door.drow.abs > 0 ? door_row_index : door_col_index
       door_section_index = door.drow.abs > 0 ? rand(room.s_cols) : rand(room.s_rows)
 
-      puts ">>> add_room #{{door: door.name, new_row_index: new_row_index, new_col_index: new_col_index, from_door_section_index: from_door_section_index, door_section_index: door_section_index}}"
+      # puts ">>> add_room #{{door: door.name, new_row_index: new_row_index, new_col_index: new_col_index, from_door_section_index: from_door_section_index, door_section_index: door_section_index}}"
 
       previous_grid = grid.clone
       rows_to_insert, cols_to_insert = resize_grid(
@@ -86,7 +88,7 @@ module Escapist
         from_door_section_index, door_section_index, door
       )
 
-      puts ">>> add_room #{{rows_to_insert: rows_to_insert, cols_to_insert: cols_to_insert, room_r_index: room_r_index, room_c_index: room_c_index}}"
+      # puts ">>> add_room #{{rows_to_insert: rows_to_insert, cols_to_insert: cols_to_insert, room_r_index: room_r_index, room_c_index: room_c_index}}"
 
       display_grid
 
@@ -97,7 +99,6 @@ module Escapist
       end
 
       set_grid_room_keys(room_r_index, room_c_index, room)
-      set_doors(door, from_door_section_index, door_section_index, from_room, room)
 
       {true, room_r_index, room_c_index}
     end
@@ -239,7 +240,7 @@ module Escapist
           grid_col_index = room_c_index + s_col_i
 
           unless row[grid_col_index] == ""
-            puts "Error: room collision at [#{grid_row_index}, #{grid_col_index}]"
+            # puts "Error: room collision at [#{grid_row_index}, #{grid_col_index}]"
             break
           end
 
@@ -248,41 +249,141 @@ module Escapist
       end
     end
 
-    def set_doors(door, from_door_section_index, door_section_index, from_room, room)
-      # from_room
-      doors = room_doors(from_room, door.name)
+    def set_doors
+      rooms_done = [] of String
 
-      add_empty_doors(doors, from_door_section_index)
+      grid.each_with_index do |row, row_index|
+        row.each_with_index do |cell, col_index|
+          next if cell == ""
 
-      doors[from_door_section_index] = room.key
+          if room = rooms[cell]
+            next if rooms_done.includes?(room.key)
 
-      # room
-      doors = room_doors(room, door.opposite)
-
-      add_empty_doors(doors, door_section_index)
-
-      doors[door_section_index] = from_room.key
-    end
-
-    def room_doors(room, door_name)
-      case door_name
-      when :top
-        room.doors.top
-      when :left
-        room.doors.left
-      when :bottom
-        room.doors.bottom
-      when :right
-        room.doors.right
-      else
-        room.doors.top
+            set_doors_for_room(room, row_index, col_index)
+            rooms_done << room.key
+          end
+        end
       end
     end
 
-    def add_empty_doors(doors, door_section_index)
-      if doors.size - 1 < door_section_index
-        (door_section_index + 1 - doors.size).times do
-          doors << nil
+    def set_doors_for_room(from_room, room_row_index, room_col_index)
+      grid[room_row_index..(room_row_index + from_room.s_rows - 1)].each_with_index do |row, door_row_index|
+        row_index = room_row_index + door_row_index
+
+        row[room_col_index..(room_col_index + from_room.s_cols - 1)].each_with_index do |_cell, door_col_index|
+          col_index = room_col_index + door_col_index
+          # puts ">>> set_doors_for_room k: #{from_room.key[0]} c: #{[row_index, col_index]} d: #{[door_row_index, door_col_index]}"
+
+          # check all directions for another room
+          check_top_room_for_door(from_room, row_index, col_index, room_col_index)
+          check_left_room_for_door(from_room, row_index, col_index, room_row_index)
+          check_bottom_room_for_door(from_room, row_index, col_index, room_col_index)
+          check_right_room_for_door(from_room, row_index, col_index, room_row_index)
+        end
+      end
+    end
+
+    def check_top_room_for_door(from_room, row_index, col_index, room_col_index)
+      if row_index - 1 >= 0
+        cell = grid[row_index - 1][col_index]
+
+        if cell != "" && cell != from_room.key
+          if to_room = rooms[cell]
+            from_door_section_index = col_index - room_col_index
+            to_door_section_index = -1
+
+            to_room.s_cols.times do |index|
+              if col_index - index < 0 || grid[row_index - 1][col_index - index] != to_room.key
+                break
+              end
+
+              to_door_section_index += 1
+            end
+
+            from_room.add_door(:top, to_room.key, from_door_section_index)
+            # puts ">>> check_top_room_for_door add_door #{from_room.key[0]} #{from_door_section_index}"
+            to_room.add_door(:bottom, from_room.key, to_door_section_index)
+            # puts ">>> check_top_room_for_door add_door #{to_room.key[0]} #{to_door_section_index}"
+          end
+        end
+      end
+    end
+
+    def check_left_room_for_door(from_room, row_index, col_index, room_row_index)
+      if col_index - 1 >= 0
+        cell = grid[row_index][col_index - 1]
+
+        if cell != "" && cell != from_room.key
+          if to_room = rooms[cell]
+            from_door_section_index = row_index - room_row_index
+            to_door_section_index = -1
+
+            to_room.s_rows.times do |index|
+              if row_index - index < 0 || grid[row_index - index][col_index - 1] != to_room.key
+                break
+              end
+
+              to_door_section_index += 1
+            end
+
+
+            from_room.add_door(:left, to_room.key, from_door_section_index)
+            # puts ">>> check_left_room_for_door add_door #{from_room.key[0]} #{from_door_section_index}"
+            to_room.add_door(:right, from_room.key, to_door_section_index)
+            # puts ">>> check_left_room_for_door add_door #{to_room.key[0]} #{to_door_section_index}"
+          end
+        end
+      end
+    end
+
+    def check_bottom_room_for_door(from_room, row_index, col_index, room_col_index)
+      if row_index + 1 <= grid.size - 1
+        cell = grid[row_index + 1][col_index]
+
+        if cell != "" && cell != from_room.key
+          if to_room = rooms[cell]
+            from_door_section_index = col_index - room_col_index
+            to_door_section_index = -1
+
+            to_room.s_cols.times do |index|
+              if col_index - index < 0 || grid[row_index + 1][col_index - index] != to_room.key
+                break
+              end
+
+              to_door_section_index += 1
+            end
+
+            from_room.add_door(:bottom, to_room.key, from_door_section_index)
+            # puts ">>> check_bottom_room_for_door add_door #{from_room.key[0]} #{from_door_section_index}"
+            to_room.add_door(:top, from_room.key, to_door_section_index)
+            # puts ">>> check_bottom_room_for_door add_door #{to_room.key[0]} #{to_door_section_index}"
+          end
+        end
+      end
+    end
+
+    def check_right_room_for_door(from_room, row_index, col_index, room_row_index)
+      if col_index + 1 <= grid[0].size - 1
+        cell = grid[row_index][col_index + 1]
+
+        if cell != "" && cell != from_room.key
+          if to_room = rooms[cell]
+            from_door_section_index = row_index - room_row_index
+            to_door_section_index = -1
+
+            to_room.s_rows.times do |index|
+              if row_index - index < 0 || grid[row_index - index][col_index + 1] != to_room.key
+                break
+              end
+
+              to_door_section_index += 1
+            end
+
+            from_room.add_door(:right, to_room.key, from_door_section_index)
+            # puts ">>> check_right_room_for_door add_door #{from_room.key[0]} #{from_door_section_index}"
+            to_room.add_door(:left, from_room.key, to_door_section_index)
+            # puts ">>> check_right_room_for_door add_door #{to_room.key[0]} #{to_door_section_index}"
+          end
         end
       end
     end

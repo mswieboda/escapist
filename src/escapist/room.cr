@@ -85,7 +85,7 @@ module Escapist
       tiles[col][row] = tile
     end
 
-    def add_door(door : Symbol, room_key, cell_index)
+    def add_door(door : Symbol, room_key, section_index)
       door_list = case door
         when :top
           doors.top
@@ -99,8 +99,10 @@ module Escapist
           [] of String | Nil # DoorKey via RoomDoors
         end
 
-      section_index = (cell_index / SectionTiles).to_i
-      empty_doors = section_index - door_list.size - 2
+      # TODO: until figuring out which one to spawn to is fixed
+      return if door_list.includes?(room_key)
+
+      empty_doors = -door_list.size + 1 + section_index
 
       if empty_doors > 0
         empty_doors.times do
@@ -108,7 +110,7 @@ module Escapist
         end
       end
 
-      door_list << room_key
+      door_list[section_index] = room_key
     end
 
     def update(p : Player | Nil, keys : Keys)

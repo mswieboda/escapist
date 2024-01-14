@@ -7,6 +7,8 @@ module Escapist
     @floor_data : FloorData
     @floor : Floor
 
+    delegate :grid, to: @floor_data
+
     Margin = 32
     CellSize = 48
 
@@ -18,8 +20,6 @@ module Escapist
     CellOutlineColor = SF::Color.new(153, 153, 153, 51)
     CellOutlineThickness = 2
 
-    delegate :grid, to: @floor_data
-    
     def initialize(@tr_x, @tr_y, @floor_data, @floor)
     end
 
