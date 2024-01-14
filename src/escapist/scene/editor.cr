@@ -198,6 +198,7 @@ module Escapist::Scene
           if cols = @new_items.find { |i| i.key == "cols" }
             if rows = @new_items.find { |i| i.key == "rows" }
               @editor.room = Room.new(cols.data, rows.data)
+              @editor.cursor.jump_to(0, 0)
               @menu_new = false
             end
           end

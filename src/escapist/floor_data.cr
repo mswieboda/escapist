@@ -47,8 +47,17 @@ module Escapist
         door_col_index = [0, from_room.s_cols - 1].sample
       end
 
-      # TODO: randomize this from RoomData.rooms
       next_room = Room.new(rand(1..3), rand(1..3))
+      keys = room_data.rooms.keys.select { |key| !rooms.has_key?(key) }
+
+      if !keys.empty?
+        next_room_key = keys.sample
+
+        if room = room_data.rooms[next_room_key]
+          next_room = room
+        end
+      end
+
       success, row_index, col_index = add_room(
         row_index, col_index, door_row_index, door_col_index, from_room, next_room
       )
