@@ -47,6 +47,10 @@ module Escapist
       false
     end
 
+    def movable?
+      false
+    end
+
     def collision_box
       Box.new(x, y, size)
     end
@@ -63,6 +67,9 @@ module Escapist
     end
 
     def area_exited
+    end
+
+    def move(dx : Float32 | Int32, dy : Float32 | Int32)
     end
 
     def self.cells_near(x, y)

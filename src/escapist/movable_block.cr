@@ -26,6 +26,10 @@ module Escapist
       Key
     end
 
+    def movable?
+      true
+    end
+
     def x
       super + dx
     end
@@ -34,7 +38,7 @@ module Escapist
       super + dy
     end
 
-    def move(dx, dy)
+    def move(dx : Float32 | Int32, dy : Float32 | Int32)
       @dx += dx
       @dy += dy
 

@@ -61,9 +61,7 @@ module Escapist
 
     def move_with_speed(dx, dy, frame_time)
       speed = sprinting? ? SprintSpeed : Speed
-
       directional_speed = dx != 0 && dy != 0 ? speed / 1.4142 : speed
-
       dx *= (directional_speed * frame_time).to_f32
       dy *= (directional_speed * frame_time).to_f32
 
@@ -91,24 +89,12 @@ module Escapist
     def move_with_room_collisions(dx, dy, room)
       collidables = room.tiles_near(x + dx, y + dy).select(&.collidable?)
 
+      if moved = move_with_room_movables(dx, dy, room, collidables)
+        dx, dy = moved
+        return {dx, dy}
+      end
+
       collidables.each do |tile_obj|
-        if movable_block = tile_obj.is_a?(MovableBlock) && tile_obj.as(MovableBlock)
-          if collision?(tile_obj.collision_box, dx, dy)
-            # slow down / 2 when moving stuff
-            speed = sprinting? ? SprintSpeed : Speed
-            directional_speed = dx != 0 && dy != 0 ? speed / 1.4142 : speed
-
-            dx = ((dx / directional_speed) * Speed / 2).to_f32
-            dy = ((dy / directional_speed) * Speed / 2).to_f32
-
-            # TODO: fix this so it doesn't move in both directions
-            #       only move dy if coming from bottom, for example
-            # TODO: also fix moving past walls or through other collidables
-            #       this is gonna suck :)
-            tile_obj.move(dx, dy)
-          end
-        end
-
         dx = 0 if collision?(tile_obj.collision_box, dx)
         dy = 0 if collision?(tile_obj.collision_box, 0, dy)
 
@@ -116,6 +102,40 @@ module Escapist
       end
 
       {dx, dy}
+    end
+
+    def move_with_room_movables(dx, dy, room, collidables)
+      collidables.select(&.movable?).each do |tile_obj|
+        if collision?(tile_obj.collision_box, dx, dy)
+          dx, dy = movable_speed(dx, dy)
+
+          # TODO: fix moving past walls or through other collidables
+          #       this is gonna suck :)
+
+          # NOTE: checks ensure movable can't move in both directions simultaneously
+          if dx.abs > 0 && left_or_right_of_movable?(tile_obj)
+            adjusted_dx = if dx > 0
+              dx * 1.5 + [x + size - tile_obj.x, 0].min
+            else
+              dx * 1.5 + [x - tile_obj.x + tile_obj.size, 0].min
+            end
+
+            tile_obj.move(adjusted_dx, 0)
+
+            return {dx, dy}
+          elsif dy.abs > 0 && above_or_below_of_movable?(tile_obj)
+            adjusted_dy = if dy > 0
+              dy * 1.5 + [y + size - tile_obj.y, 0].min
+            else
+              dy * 1.5 + [y - tile_obj.y + tile_obj.size, 0].min
+            end
+
+            tile_obj.move(0, adjusted_dy)
+
+            return {dx, dy}
+          end
+        end
+      end
     end
 
     def area_checks(room)
@@ -169,6 +189,28 @@ module Escapist
 
     def collision?(box : Box, dx = 0, dy = 0)
       Box.new(x + dx, y + dy, size).collision?(box)
+    end
+
+    def movable_speed(dx, dy)
+      # get what speed was prior to movable
+      speed = sprinting? ? SprintSpeed : Speed
+      directional_speed = dx != 0 && dy != 0 ? speed / 1.4142 : speed
+
+      # slow down to normal speed / 2 when moving stuff
+      dx = ((dx / directional_speed) * Speed / 2).to_f32
+      dy = ((dy / directional_speed) * Speed / 2).to_f32
+
+      {dx, dy}
+    end
+
+    def left_or_right_of_movable?(tile_obj : TileObj)
+      (x + size / 2 <= tile_obj.x || x >= tile_obj.x + tile_obj.size / 2) &&
+        (y + size / 2 >= tile_obj.y && y + size / 2 <= tile_obj.y + size)
+    end
+
+    def above_or_below_of_movable?(tile_obj : TileObj)
+      (y + size / 2 <= tile_obj.y || y >= tile_obj.y + tile_obj.size / 2) &&
+        (x + size / 2 >= tile_obj.x && x + size / 2 <= tile_obj.x + size)
     end
   end
 end
