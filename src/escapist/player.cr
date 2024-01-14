@@ -91,7 +91,6 @@ module Escapist
 
       if moved = move_with_room_movables(dx, dy, room, collidables)
         dx, dy = moved
-        return {dx, dy}
       end
 
       collidables.each do |tile_obj|
@@ -127,23 +126,51 @@ module Escapist
             end
           end
 
-          # stops moving past room walls
-          tile_obj_dx, tile_obj_dy = wall_collision(tile_obj, tile_obj_dx, tile_obj_dy, room)
+          # stops moving past room walls and other collidables
+          tile_obj_dx, tile_obj_dy = movable_collisions(
+            tile_obj,
+            tile_obj_dx,
+            tile_obj_dy,
+            room,
+            collidables
+          )
 
-          return nil if tile_obj_dx == 0 && tile_obj_dy == 0
+          unless tile_obj_dx == 0 && tile_obj_dy == 0
+            tile_obj.move(tile_obj_dx, tile_obj_dy)
 
-          # TODO: fix moving past other collidables
-
-          tile_obj.move(tile_obj_dx, tile_obj_dy)
-
-          return {dx, dy}
+            {dx, dy}
+          end
         end
       end
     end
 
-    def wall_collision(tile_obj, dx, dy, room)
+    def movable_collisions(tile_obj, dx, dy, room, collidables)
+      # stops moving past room walls
       dx = 0 if tile_obj.x + dx < 0 || tile_obj.x + dx + tile_obj.size > room.width
       dy = 0 if tile_obj.y + dy < 0 || tile_obj.y + dy + tile_obj.size > room.height
+
+      return {dx, dy} if dx == 0 && dy == 0
+
+      # stops moving past other collidables
+      dx, dy = movable_other_collisions(tile_obj, dx, dy, room, collidables)
+
+      {dx, dy}
+    end
+
+    def movable_other_collisions(tile_obj, dx, dy, room, collidables)
+      tile_obj_collidables = room
+        .tiles_near(tile_obj.x + dx.sign, tile_obj.y + dy.sign)
+        .select(&.collidable?)
+
+      other_collidables = (tile_obj_collidables + collidables)
+        .reject { |to| to == tile_obj }
+
+      other_collidables.each do |other_obj|
+        dx = 0 if movable_collision?(tile_obj, other_obj.collision_box, dx)
+        dy = 0 if movable_collision?(tile_obj, other_obj.collision_box, 0, dy)
+
+        break if dx == 0 && dy == 0
+      end
 
       {dx, dy}
     end
@@ -199,6 +226,10 @@ module Escapist
 
     def collision?(box : Box, dx = 0, dy = 0)
       Box.new(x + dx, y + dy, size).collision?(box)
+    end
+
+    def movable_collision?(tile_obj, box : Box, dx = 0, dy = 0)
+      Box.new(tile_obj.x + dx, tile_obj.y + dy, tile_obj.size).collision?(box)
     end
 
     def movable_speed(dx, dy)

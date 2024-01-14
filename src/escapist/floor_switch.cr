@@ -50,20 +50,23 @@ module Escapist
 
     def draw_background(window)
       rect = SF::RectangleShape.new
-      rect.size = SF.vector2f(size, size)
+      rect.size = SF.vector2f(draw_size, draw_size)
       rect.fill_color = BackgroundColor
-      rect.position = {x, y}
+      rect.position = {x + draw_offset, y + draw_offset}
 
       window.draw(rect)
     end
 
     def draw_switch_circle(window)
-      radius = (size / 3).to_i
+      radius = (draw_size / 3).to_i
       circle = SF::CircleShape.new(radius)
       circle.fill_color = on? ? OnColor : OffColor
       circle.outline_color = on? ? OnOutlineColor : OffOutlineColor
       circle.outline_thickness = OutlineThickness
-      circle.position = {x + radius / 2, y + radius / 2}
+      circle.position = {
+        x + draw_offset + radius / 2,
+        y + draw_offset + radius / 2
+      }
 
       window.draw(circle)
     end

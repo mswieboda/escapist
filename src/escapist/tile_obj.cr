@@ -13,8 +13,7 @@ module Escapist
 
     Key = "to"
     TileSize = 128
-    Size = 96
-    Offset = 16 # (TileSize - Size) / 2
+    DrawSize = 96
 
     def initialize(*, __pull_for_json_serializable pull : ::JSON::PullParser)
       super
@@ -28,15 +27,27 @@ module Escapist
     end
 
     def size
-      Size
+      TileSize
+    end
+
+    def self.draw_size
+      DrawSize
+    end
+
+    def draw_size
+      self.class.draw_size
+    end
+
+    def draw_offset
+      (size - draw_size) / 2
     end
 
     def x
-      col * TileSize + Offset
+      col * TileSize
     end
 
     def y
-      row * TileSize + Offset
+      row * TileSize
     end
 
     def area?

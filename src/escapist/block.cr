@@ -25,11 +25,11 @@ module Escapist
 
     def draw(window : SF::RenderWindow)
       rect = SF::RectangleShape.new
-      rect.size = SF.vector2f(size, size)
+      rect.size = SF.vector2f(draw_size, draw_size)
       rect.fill_color = Color
       rect.outline_color = OutlineColor
       rect.outline_thickness = OutlineThickness
-      rect.position = {x, y}
+      rect.position = {x + draw_offset, y + draw_offset}
 
       window.draw(rect)
     end
