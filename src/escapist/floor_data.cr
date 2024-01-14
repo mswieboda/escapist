@@ -17,13 +17,7 @@ module Escapist
       @rooms[room.key] = room
       @grid << [room.key]
 
-      generate(first_room_key, 0, 0)
-
-      set_doors
-
-      # puts ">>> grid:"
-      # display_grid
-      # puts
+      generate
     end
 
     def self.first_room_key
@@ -32,6 +26,14 @@ module Escapist
 
     def first_room_key
       self.class.first_room_key
+    end
+
+    def generate
+      generate(first_room_key, 0, 0)
+      set_doors
+
+      # puts ">>> grid:"
+      # display_grid
     end
 
     def generate(from_room_key, row_index, col_index)
@@ -114,27 +116,39 @@ module Escapist
 
     def get_random_door(from_room, door_row_index, door_col_index)
       if door_row_index == 0
+        doors = [DoorConfig.top]
+
         if door_col_index == 0
-          [DoorConfig.top, DoorConfig.left].sample
+          doors << DoorConfig.left
+
+          if from_room.s_rows == 1
+            doors << DoorConfig.bottom
+          elsif from_room.s_cols == 1
+            doors << DoorConfig.right
+          end
         elsif door_col_index == from_room.s_cols - 1
-          [DoorConfig.top, DoorConfig.right].sample
-        else
-          DoorConfig.top
+          doors << DoorConfig.right
+          doors << DoorConfig.bottom if from_room.s_rows == 1
         end
+
+        doors.sample
       elsif door_row_index > 0 && door_row_index < from_room.s_rows - 1
         if door_col_index == 0
           DoorConfig.left
         else
           DoorConfig.right
         end
-      else
+      else # last row
+        doors = [DoorConfig.bottom]
+
         if door_col_index == 0
-          [DoorConfig.bottom, DoorConfig.left].sample
+          doors << DoorConfig.left
+          doors << DoorConfig.right if from_room.s_cols == 1
         elsif door_col_index == from_room.s_cols - 1
-          [DoorConfig.bottom, DoorConfig.right].sample
-        else
-          DoorConfig.bottom
+          doors << DoorConfig.right
         end
+
+        doors.sample
       end
     end
 
