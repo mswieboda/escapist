@@ -136,6 +136,7 @@ module Escapist
       end
 
       update_tiles
+      update_laser_blocks
     end
 
     def update_tiles
@@ -145,6 +146,19 @@ module Escapist
             move_tile_obj(col, row, tile_obj.col, tile_obj.row)
           end
         end
+      end
+    end
+
+    def update_laser_blocks
+      collidables = tiles.values.flat_map(&.values)
+        .select(&.collidable?)
+
+      laser_blocks = collidables
+        .select(LaserBlock)
+        .map { |tile_obj| tile_obj.as(LaserBlock) }
+
+      laser_blocks.each do |laser_block|
+        laser_block.update(self, collidables)
       end
     end
 

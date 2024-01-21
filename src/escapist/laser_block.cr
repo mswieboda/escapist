@@ -29,6 +29,33 @@ module Escapist
       Key
     end
 
+    def update(_room, collidables)
+      laser_x = x + size / 2 - LaserWidth / 2
+
+      # find closest collidable in the -y direction or wall
+      # TODO: later will need room for width/height if laser is rotated
+      y_edges = collidables.compact_map do |tile_obj|
+        next if tile_obj.x + tile_obj.size < laser_x
+        next if tile_obj.x > laser_x + LaserWidth
+
+        tile_edge = tile_obj.y + tile_obj.size
+
+        y > tile_edge ? tile_edge : nil
+      end
+
+      # start at room edge, depending on direction TBD using `_room`
+      y_edge = 0
+
+      unless y_edges.empty?
+        y_edges << y_edge
+        y_edge = y_edges.max
+      end
+
+      laser_barrel_y = y + draw_offset
+
+      @distance = (laser_barrel_y - y_edge).to_f32
+    end
+
     def draw_movable(window : SF::RenderWindow)
       draw_laser_barrel(window)
       draw_laser(window)
