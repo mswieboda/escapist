@@ -2,7 +2,7 @@ require "./tile_obj"
 
 module Escapist
   class BaseBlock < TileObj
-    use_json_discriminator "block", {block: Block, movable: MovableBlock}
+    use_json_discriminator "block", {block: Block, movable: MovableBlock, laser: LaserBlock}
 
     property block : String
 

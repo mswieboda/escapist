@@ -3,6 +3,7 @@ require "./room_doors"
 require "./tile_obj"
 require "./block"
 require "./movable_block"
+require "./laser_block"
 require "./floor_switch"
 require "json"
 require "uuid"
@@ -89,6 +90,8 @@ module Escapist
         Block.new(col, row)
       when :movable_block
         MovableBlock.new(col, row)
+      when :laser_block
+        LaserBlock.new(col, row)
       when :floor_switch
         FloorSwitch.new(col, row)
       else

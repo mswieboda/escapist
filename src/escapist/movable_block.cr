@@ -19,7 +19,7 @@ module Escapist
       @dx = 0
       @dy = 0
 
-      super(Key, col, row)
+      super(key, col, row)
     end
 
     def self.key
@@ -56,6 +56,10 @@ module Escapist
     def draw(window : SF::RenderWindow)
       super
 
+      draw_movable(window)
+    end
+
+    def draw_movable(window : SF::RenderWindow)
       draw_icon(window)
     end
 

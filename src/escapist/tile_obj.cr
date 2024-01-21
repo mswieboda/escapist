@@ -26,6 +26,10 @@ module Escapist
       Key
     end
 
+    def key
+      self.class.key
+    end
+
     def size
       TileSize
     end

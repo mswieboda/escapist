@@ -1,6 +1,7 @@
 require "./cursor"
 require "./block"
 require "./movable_block"
+require "./laser_block"
 require "./floor_switch"
 
 module Escapist
@@ -15,7 +16,7 @@ module Escapist
 
     Padding = 56
 
-    PlaceTypes = [nil, :block, :movable_block, :floor_switch]
+    PlaceTypes = [nil, :block, :movable_block, :laser_block, :floor_switch]
 
     PlaceSound = SF::SoundBuffer.from_file("./assets/cursor.wav")
     PlaceSoundPitchDecrease = 0.33
@@ -148,6 +149,8 @@ module Escapist
             Block.new(cursor.col, cursor.row).draw(window)
           when :movable_block
             MovableBlock.new(cursor.col, cursor.row).draw(window)
+          when :laser_block
+            LaserBlock.new(cursor.col, cursor.row).draw(window)
           when :floor_switch
             FloorSwitch.new(cursor.col, cursor.row).draw(window)
         end
