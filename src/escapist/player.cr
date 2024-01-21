@@ -16,6 +16,7 @@ module Escapist
     SprintSpeed = 1280
     SprintDuration = 500.milliseconds
     SprintWaitDuration = 300.milliseconds
+    PullRangeThreshold = 4
 
     Color = SF::Color.new(153, 0, 0, 30)
     OutlineColor = SF::Color.new(153, 0, 0)
@@ -53,6 +54,8 @@ module Escapist
       dx, dy = move_with_room(dx, dy, room)
 
       return if dx == 0 && dy == 0
+
+      dx, dy = pull_movables(dx, dy, room, keys)
 
       move(dx, dy)
 
@@ -169,6 +172,33 @@ module Escapist
       {dx, dy}
     end
 
+    def pull_movables(dx, dy, room, keys)
+      return {dx, dy} unless keys.pressed?([Keys::LShift, Keys::RShift])
+
+      # TODO: refactor this so it works seamlessly with moving tiles
+      # movables = room.tiles_near(x, y)
+      #   .select(&.collidable?)
+      #   .select(&.movable?)
+
+      # TODO: this is inefficient checking every movable tile, refactor above
+      movables = room.tiles.values.flat_map(&.values).select(&.movable?)
+      movable, tile_obj_dx, tile_obj_dy = pullable(movables, dx, dy)
+
+      if movable
+        dx, dy = movable_speed(dx, dy)
+
+        if tile_obj_dx.abs > 0
+          tile_obj_dx = dx
+        elsif tile_obj_dy.abs > 0
+          tile_obj_dy = dy
+        end
+
+        movable.move(tile_obj_dx, tile_obj_dy)
+      end
+
+      {dx, dy}
+    end
+
     def area_checks(room)
       areas = room.tiles_near(x, y).select(&.area?)
       areas_entered = areas.select(&.area_entered?)
@@ -186,7 +216,7 @@ module Escapist
     end
 
     def update_sprinting(keys)
-      if (sprinting? && !sprint_timer.done?) || (sprint_wait_timer.done? && keys.just_pressed?([Keys::LShift, Keys::RShift]))
+      if (sprinting? && !sprint_timer.done?) || (sprint_wait_timer.done? && keys.just_pressed?(Keys::Space))
         if !sprinting?
           @sprinting = true
           sprint_timer.restart
@@ -246,6 +276,40 @@ module Escapist
     def above_or_below_of_movable?(tile_obj : TileObj)
       (y + size / 2 <= tile_obj.y || y >= tile_obj.y + tile_obj.size / 2) &&
         (x + size / 2 >= tile_obj.x && x + size / 2 <= tile_obj.x + size)
+    end
+
+    def pullable(movables, dx, dy)
+      movables.find do |movable|
+        if dx.abs > 0 && left_or_right_of_movable?(movable)
+          if pullable_right?(movable) || pullable_left?(movable)
+            return {movable, dx, 0}
+          end
+        elsif dy.abs > 0 && above_or_below_of_movable?(movable)
+          if pullable_up?(movable) || pullable_down?(movable)
+            return {movable, 0, dy}
+          end
+        end
+      end
+
+      {nil, 0, 0}
+    end
+
+    def pullable_right?(movable)
+      x >= movable.x + movable.size &&
+        x <= movable.x + movable.size + PullRangeThreshold
+    end
+
+    def pullable_left?(movable)
+      x + size <= movable.x && x + size + PullRangeThreshold <= movable.x
+    end
+
+    def pullable_up?(movable)
+      y + size <= movable.y && y + size + PullRangeThreshold <= movable.y
+    end
+
+    def pullable_down?(movable)
+      y >= movable.y + movable.size &&
+        y <= movable.y + movable.size + PullRangeThreshold
     end
   end
 end
