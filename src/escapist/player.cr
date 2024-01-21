@@ -113,17 +113,9 @@ module Escapist
 
           # checks ensure movable can't move in both directions simultaneously
           if dx.abs > 0 && left_or_right_of_movable?(tile_obj)
-            tile_obj_dx = if dx > 0
-              dx * 1.5 + [x + size - tile_obj.x, 0].min
-            else
-              dx * 1.5 + [x - tile_obj.x + tile_obj.size, 0].min
-            end
+            tile_obj_dx = dx
           elsif dy.abs > 0 && above_or_below_of_movable?(tile_obj)
-            tile_obj_dy = if dy > 0
-              dy * 1.5 + [y + size - tile_obj.y, 0].min
-            else
-              dy * 1.5 + [y - tile_obj.y + tile_obj.size, 0].min
-            end
+            tile_obj_dy = dy
           end
 
           # stops moving past room walls and other collidables
@@ -138,10 +130,12 @@ module Escapist
           unless tile_obj_dx == 0 && tile_obj_dy == 0
             tile_obj.move(tile_obj_dx, tile_obj_dy)
 
-            {dx, dy}
+            return {dx, dy}
           end
         end
       end
+
+      nil
     end
 
     def movable_collisions(tile_obj, dx, dy, room, collidables)
