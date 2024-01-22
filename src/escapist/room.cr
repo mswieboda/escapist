@@ -38,6 +38,14 @@ module Escapist
       @doors = RoomDoors.new
     end
 
+    def self.tile_size
+      TileSize
+    end
+
+    def tile_size
+      self.class.tile_size
+    end
+
     def rows
       s_rows * SectionTiles
     end
@@ -47,11 +55,11 @@ module Escapist
     end
 
     def width
-      cols * TileSize
+      cols * tile_size
     end
 
     def height
-      rows * TileSize
+      rows * tile_size
     end
 
     def display_name
@@ -150,15 +158,12 @@ module Escapist
     end
 
     def update_laser_blocks
-      collidables = tiles.values.flat_map(&.values)
-        .select(&.collidable?)
-
-      laser_blocks = collidables
+      laser_blocks = tiles.values.flat_map(&.values)
         .select(LaserBlock)
         .map { |tile_obj| tile_obj.as(LaserBlock) }
 
       laser_blocks.each do |laser_block|
-        laser_block.update(self, collidables)
+        laser_block.update(self)
       end
     end
 
@@ -207,11 +212,11 @@ module Escapist
 
     def draw_tile_cell(window, col, row)
       rect = SF::RectangleShape.new
-      rect.size = SF.vector2f(TileSize, TileSize)
+      rect.size = SF.vector2f(tile_size, tile_size)
       rect.fill_color = SF::Color::Transparent
       rect.outline_color = TileGridColor
       rect.outline_thickness = TileGridOutlineThickness
-      rect.position = {col * TileSize, row * TileSize}
+      rect.position = {col * tile_size, row * tile_size}
 
       window.draw(rect)
     end

@@ -1,9 +1,23 @@
 require "./movable_block"
 
 module Escapist
+  def self.rotate_vector(vector, angle)
+    radians = Math::PI * angle / 180.0
+    cos = Math.cos(radians)
+    sin = Math.sin(radians)
+
+    {
+      x: vector[:x] * cos - vector[:y] * sin,
+      y: vector[:x] * sin + vector[:y] * cos
+    }
+  end
+
   class LaserBlock < MovableBlock
     @[JSON::Field(ignore: true)]
     getter distance : Float32 | Int32 = 0
+
+    @[JSON::Field(ignore: true)]
+    getter rotation_angle : Float32 | Int32 = 0
 
     Key = "laser"
     LaserBarrelColorFilled = SF::Color.new(51, 51, 51)
@@ -21,6 +35,7 @@ module Escapist
 
     def initialize(col = 0, row = 0)
       @distance = 0
+      @rotation_angle = 0
 
       super(col, row)
     end
@@ -29,30 +44,51 @@ module Escapist
       Key
     end
 
-    def update(_room, collidables)
-      laser_x = x + size / 2 - LaserWidth / 2
+    def update(room)
+      start_point = {x: x + size / 2, y: y + size / 2}
+      direction = {x: 0, y: -1}
+      direction = Escapist.rotate_vector(direction, rotation_angle)
+      distance = cast_ray(start_point, direction, room)
+      @distance = distance.to_f32
+    end
 
-      # find closest collidable in the -y direction or wall
-      # TODO: later will need room for width/height if laser is rotated
-      y_edges = collidables.compact_map do |tile_obj|
-        next if tile_obj.x + tile_obj.size < laser_x
-        next if tile_obj.x > laser_x + LaserWidth
+    def cast_ray(start_point, direction, room)
+      x, y = start_point[:x], start_point[:y]
+      dx, dy = direction[:x], direction[:y]
 
-        tile_edge = tile_obj.y + tile_obj.size
+      distance = 0
 
-        y > tile_edge ? tile_edge : nil
+      loop do
+        row = (x / room.tile_size).to_i
+        col = (y / room.tile_size).to_i
+
+        break if room_found?(row, col, room)
+
+        # no tile_objs, check room bounds
+        break if x < 0 || y < 0 || row >= room.rows || col >= room.cols
+
+        distance += 1
+        x += dx
+        y += dy
       end
 
-      # start at room edge, depending on direction TBD using `_room`
-      y_edge = 0
+      distance
+    end
 
-      unless y_edges.empty?
-        y_edges << y_edge
-        y_edge = y_edges.max
+    def room_found?(row, col, room)
+      tile_obj_found = nil
+
+      if room.tiles.has_key?(row) && room.tiles[row].has_key?(col)
+        tile_obj_found = room.tiles[row][col]
       end
 
-      laser_origin_y = y + size / 2
-      @distance = (laser_origin_y - y_edge).to_f32
+      if tile_obj = tile_obj_found
+        if tile_obj != self && tile_obj.collidable?
+          return true
+        end
+      end
+
+      false
     end
 
     def draw_movable(window : SF::RenderWindow)
@@ -66,6 +102,7 @@ module Escapist
       # barrel filled, to make opaque
       tri = SF::CircleShape.new(tri_size, 3)
       tri.origin = {tri_size, tri_size}
+      tri.rotation = rotation_angle
       tri.fill_color = LaserBarrelColorFilled
       tri.position = {
         x + size / 2,
@@ -76,6 +113,7 @@ module Escapist
       # barrel with laser filling and outline
       tri = SF::CircleShape.new(tri_size, 3)
       tri.origin = {tri_size, tri_size}
+      tri.rotation = rotation_angle
       tri.fill_color = LaserBarrelColor
       tri.outline_color = LaserBarrelOutlineColor
       tri.outline_thickness = LaserBarrelOutlineThickness
@@ -94,6 +132,7 @@ module Escapist
         LaserCenterWidth / 2,
         distance
       }
+      rect.rotation = rotation_angle
       rect.fill_color = LaserCenterColor
       rect.outline_color = LaserCenterOutlineColor
       rect.outline_thickness = LaserCenterOutlineThickness
@@ -111,6 +150,7 @@ module Escapist
         LaserWidth / 2,
         distance
       }
+      rect.rotation = rotation_angle
       rect.fill_color = LaserColor
       rect.outline_color = LaserOutlineColor
       rect.outline_thickness = LaserOutlineThickness
