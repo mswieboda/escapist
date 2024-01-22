@@ -19,6 +19,18 @@ module Escapist
     @[JSON::Field(ignore: true)]
     getter rotation_angle : Float32 | Int32 = 0
 
+    @[JSON::Field(ignore: true)]
+    getter? rotating = false
+
+    @[JSON::Field(ignore: true)]
+    @rotatable = false
+
+    @[JSON::Field(ignore: true)]
+    @rotate_to : Float32 | Int32 = 0
+
+    @[JSON::Field(ignore: true)]
+    @rotating_direction : Int32 = 1
+
     Key = "laser"
     LaserBarrelColorFilled = SF::Color.new(51, 51, 51)
     LaserBarrelColor = SF::Color.new(153, 0, 0, 51)
@@ -32,10 +44,19 @@ module Escapist
     LaserColor = SF::Color.new(102, 0, 0, 102)
     LaserOutlineColor = SF::Color.new(153, 0, 0, 51)
     LaserOutlineThickness = 4
+    RotatableIndicatorOutlineColor = SF::Color.new(153, 0, 0, 153)
+    RotatableIndicatorOutlineThickness = 6
+
+    RotationSpeed = 90
+    RotationAmount = 45
 
     def initialize(col = 0, row = 0)
       @distance = 0
       @rotation_angle = 0
+      @rotatable = false
+      @rotate_to = 0
+      @rotating_direction = 1
+      @rotating = false
 
       super(col, row)
     end
@@ -44,7 +65,71 @@ module Escapist
       Key
     end
 
-    def update(room)
+    def area?
+      true
+    end
+
+    def area_box
+      Box.new(
+        (x - size / 8).to_f32,
+        (y - size / 8).to_f32,
+        (size + size / 4).to_f32
+      )
+    end
+
+    def area_entered
+      @rotatable = true
+    end
+
+    def area_exited
+      @rotatable = false
+    end
+
+    def area_entered?
+      @rotatable
+    end
+
+    def rotatable?
+      @rotatable && !rotating?
+    end
+
+    def rotate(direction = 1)
+      @rotating = true
+      @rotating_direction = direction
+      @rotate_to = rotation_angle + direction * RotationAmount
+    end
+
+    def rotate_reverse
+      rotate(-1)
+    end
+
+    def update(frame_time, room)
+      update_rotation(frame_time) if rotating?
+      update_laser_distance(room)
+    end
+
+    def update_rotation(frame_time)
+      @rotation_angle += frame_time * @rotating_direction * RotationSpeed
+
+      if done_rotating?
+        @rotation_angle = @rotate_to
+
+        if @rotating_direction > 0
+          @rotation_angle -= 360 if @rotation_angle >= 360
+        else
+          @rotation_angle += 360 if @rotation_angle <= -360
+        end
+
+        @rotating = false
+      end
+    end
+
+    def done_rotating?
+      @rotating_direction > 0 && @rotation_angle >= @rotate_to ||
+        @rotating_direction < 0 && @rotation_angle <= @rotate_to
+    end
+
+    def update_laser_distance(room)
       start_point = {x: x + size / 2, y: y + size / 2}
       direction = {x: 0, y: -1}
       direction = Escapist.rotate_vector(direction, rotation_angle)
@@ -93,6 +178,7 @@ module Escapist
 
     def draw_movable(window : SF::RenderWindow)
       draw_laser_barrel(window)
+      draw_rotatable_indicator(window) if rotatable?
       draw_laser(window)
     end
 
@@ -120,6 +206,56 @@ module Escapist
       tri.position = {
         x + size / 2,
         y + size / 2
+      }
+      window.draw(tri)
+    end
+
+    def draw_rotatable_indicator(window)
+      circle_size = size / 4
+
+      circle = SF::CircleShape.new(circle_size)
+      circle.origin = {circle_size, circle_size}
+      circle.fill_color = SF::Color::Transparent
+      circle.outline_color = RotatableIndicatorOutlineColor
+      circle.outline_thickness = RotatableIndicatorOutlineThickness
+      circle.position = {
+        x + size / 2,
+        y + size / 2
+      }
+
+      window.draw(circle)
+
+      # arrows to indicate rotation, around circle
+      tri_size = size / 8
+
+      tri = SF::CircleShape.new(tri_size, 3)
+      tri.origin = {tri_size, tri_size}
+      tri.fill_color = RotatableIndicatorOutlineColor
+      tri.rotation = 90
+      tri.position = {
+        x + circle_size * 2,
+        y + circle_size
+      }
+      window.draw(tri)
+
+      tri.rotation = 180
+      tri.position = {
+        x + circle_size * 3,
+        y + circle_size * 2
+      }
+      window.draw(tri)
+
+      tri.rotation = 270
+      tri.position = {
+        x + circle_size * 2,
+        y + circle_size * 3
+      }
+      window.draw(tri)
+
+      tri.rotation = 0
+      tri.position = {
+        x + circle_size,
+        y + circle_size * 2
       }
       window.draw(tri)
     end

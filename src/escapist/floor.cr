@@ -23,7 +23,7 @@ module Escapist
       if room = @room
         player.update(frame_time, keys, room)
         update_viewport(room)
-        room.update(player, keys)
+        room.update(frame_time, keys, player)
 
         if entered = room.entered
           switch_room(entered)

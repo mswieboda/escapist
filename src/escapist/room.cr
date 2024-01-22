@@ -138,13 +138,13 @@ module Escapist
       door_list[section_index] = room_key
     end
 
-    def update(p : Player | Nil, keys : Keys)
+    def update(frame_time, keys : Keys, p : Player | Nil)
       if player = p
         doors.update(player, keys, width, height)
       end
 
       update_tiles
-      update_laser_blocks
+      update_laser_blocks(frame_time)
     end
 
     def update_tiles
@@ -157,13 +157,13 @@ module Escapist
       end
     end
 
-    def update_laser_blocks
+    def update_laser_blocks(frame_time)
       laser_blocks = tiles.values.flat_map(&.values)
         .select(LaserBlock)
         .map { |tile_obj| tile_obj.as(LaserBlock) }
 
       laser_blocks.each do |laser_block|
-        laser_block.update(self)
+        laser_block.update(frame_time, self)
       end
     end
 

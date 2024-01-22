@@ -37,6 +37,7 @@ module Escapist
     def update(frame_time, keys : Keys, room)
       update_movement(frame_time, keys, room)
       update_sprinting(keys)
+      actionable_checks(keys, room)
     end
 
     def update_movement(frame_time, keys : Keys, room)
@@ -201,17 +202,34 @@ module Escapist
 
     def area_checks(room)
       areas = room.tiles_near(x, y).select(&.area?)
-      areas_entered = areas.select(&.area_entered?)
       areas_not_entered = areas.reject(&.area_entered?)
+      areas_entered = room.tiles.values.flat_map(&.values)
+        .select(&.area_entered?)
+
+      areas_not_entered.each do |tile_obj|
+        tile_obj.area_entered if collision?(tile_obj.area_box)
+      end
 
       areas_entered.each do |tile_obj|
         next if collision?(tile_obj.area_box)
 
         tile_obj.area_exited
       end
+    end
 
-      areas_not_entered.each do |tile_obj|
-        tile_obj.area_entered if collision?(tile_obj.area_box)
+    def actionable_checks(keys, room)
+      return unless keys.just_pressed?([Keys::Q, Keys::E])
+
+      laser_blocks = room.tiles_near(x, y)
+        .select(&.area_entered?)
+        .select(LaserBlock)
+        .map { |tile_obj| tile_obj.as(LaserBlock) }
+        .select(&.rotatable?)
+
+      if keys.just_pressed?(Keys::Q)
+        laser_blocks.each(&.rotate_reverse)
+      elsif keys.just_pressed?(Keys:: E)
+        laser_blocks.each(&.rotate)
       end
     end
 

@@ -52,7 +52,7 @@ module Escapist
     def update(frame_time, keys : Keys)
       cursor.update(frame_time, keys, room.width, room.height)
       update_viewport(room)
-      room.update(nil, keys)
+      room.update(frame_time, keys, nil)
 
       update_editing(keys)
     end

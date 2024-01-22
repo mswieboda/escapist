@@ -24,11 +24,7 @@ module Escapist
     end
 
     def area?
-      true
-    end
-
-    def area_entered?
-      on?
+      !on?
     end
 
     def area_entered
@@ -38,9 +34,6 @@ module Escapist
         OnSound.pitch = 1 - OnSoundPitchVariation / 2 + rand(OnSoundPitchVariation)
         OnSound.play
       end
-    end
-
-    def area_exited
     end
 
     def draw(window : SF::RenderWindow)
