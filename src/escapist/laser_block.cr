@@ -3,7 +3,7 @@ require "./movable_block"
 module Escapist
   class LaserBlock < MovableBlock
     @[JSON::Field(ignore: true)]
-    getter distance : Float32 | Int32 = 1000
+    getter distance : Float32 | Int32 = 0
 
     Key = "laser"
     LaserBarrelColorFilled = SF::Color.new(51, 51, 51)
@@ -20,7 +20,7 @@ module Escapist
     LaserOutlineThickness = 4
 
     def initialize(col = 0, row = 0)
-      @distance = 1000
+      @distance = 0
 
       super(col, row)
     end
@@ -51,9 +51,8 @@ module Escapist
         y_edge = y_edges.max
       end
 
-      laser_barrel_y = y + draw_offset
-
-      @distance = (laser_barrel_y - y_edge).to_f32
+      laser_origin_y = y + size / 2
+      @distance = (laser_origin_y - y_edge).to_f32
     end
 
     def draw_movable(window : SF::RenderWindow)
@@ -62,7 +61,7 @@ module Escapist
     end
 
     def draw_laser_barrel(window)
-      tri_size = size / 4
+      tri_size = size / 8
 
       # barrel filled, to make opaque
       tri = SF::CircleShape.new(tri_size, 3)
@@ -70,7 +69,7 @@ module Escapist
       tri.fill_color = LaserBarrelColorFilled
       tri.position = {
         x + size / 2,
-        y + tri_size
+        y + size / 2,
       }
       window.draw(tri)
 
@@ -82,7 +81,7 @@ module Escapist
       tri.outline_thickness = LaserBarrelOutlineThickness
       tri.position = {
         x + size / 2,
-        y + tri_size
+        y + size / 2
       }
       window.draw(tri)
     end
@@ -91,12 +90,16 @@ module Escapist
       # center laser
       rect = SF::RectangleShape.new
       rect.size = SF.vector2f(LaserCenterWidth, distance)
+      rect.origin = {
+        LaserCenterWidth / 2,
+        distance
+      }
       rect.fill_color = LaserCenterColor
       rect.outline_color = LaserCenterOutlineColor
       rect.outline_thickness = LaserCenterOutlineThickness
       rect.position = {
-        x + size / 2 - LaserCenterWidth / 2,
-        y - distance + draw_offset
+        x + size / 2,
+        y + size / 2
       }
 
       window.draw(rect)
@@ -104,12 +107,16 @@ module Escapist
       # main laser
       rect = SF::RectangleShape.new
       rect.size = SF.vector2f(LaserWidth, distance)
+      rect.origin = {
+        LaserWidth / 2,
+        distance
+      }
       rect.fill_color = LaserColor
       rect.outline_color = LaserOutlineColor
       rect.outline_thickness = LaserOutlineThickness
       rect.position = {
-        x + size / 2 - LaserWidth / 2,
-        y - distance + draw_offset
+        x + size / 2,
+        y + size / 2
       }
 
       window.draw(rect)
