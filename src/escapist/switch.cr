@@ -4,7 +4,7 @@ module Escapist
   abstract class Switch < TileObj
     Key = "switch"
 
-    use_json_discriminator "switch", {floor: FloorSwitch}
+    use_json_discriminator "switch", {floor: FloorSwitch, laser: LaserSwitch}
 
     property switch : String
     property? on

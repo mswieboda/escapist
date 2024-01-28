@@ -5,6 +5,7 @@ require "./block"
 require "./movable_block"
 require "./laser_block"
 require "./floor_switch"
+require "./laser_switch"
 require "json"
 require "uuid"
 
@@ -102,6 +103,8 @@ module Escapist
         LaserBlock.new(col, row)
       when :floor_switch
         FloorSwitch.new(col, row)
+      when :laser_switch
+        LaserSwitch.new(col, row)
       else
         Block.new(col, row)
       end
@@ -145,6 +148,7 @@ module Escapist
 
       update_tiles
       update_laser_blocks(frame_time)
+      update_laser_switches
     end
 
     def update_tiles
@@ -164,6 +168,16 @@ module Escapist
 
       laser_blocks.each do |laser_block|
         laser_block.update(frame_time, self)
+      end
+    end
+
+    def update_laser_switches
+      laser_switches = tiles.values.flat_map(&.values)
+        .select(LaserSwitch)
+        .map { |tile_obj| tile_obj.as(LaserSwitch) }
+
+      laser_switches.each do |laser_switch|
+        laser_switch.update(self)
       end
     end
 

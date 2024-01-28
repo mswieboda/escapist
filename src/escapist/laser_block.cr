@@ -16,7 +16,9 @@ module Escapist
     x: Float32,
     y: Float32,
     rotation_angle: Float32,
-    distance: Float32
+    distance: Float32,
+    end_x: Float32,
+    end_y: Float32
   )
 
   class LaserBlock < MovableBlock
@@ -142,12 +144,18 @@ module Escapist
       direction = Escapist.rotate_vector(direction, rotation_angle)
       distance = cast_ray(start_point, direction, room)
 
+      radians = Math::PI * rotation_angle / 180.0
+      end_x = start_point[:x] + Math.sin(radians) * distance
+      end_y = start_point[:y] - Math.cos(radians) * distance
+
       @lasers = [
         {
           x: start_point[:x].to_f32,
           y: start_point[:y].to_f32,
           rotation_angle: rotation_angle.to_f32,
-          distance: distance.to_f32
+          distance: distance.to_f32,
+          end_x: end_x.to_f32,
+          end_y: end_y.to_f32
         }
       ]
     end
@@ -162,6 +170,7 @@ module Escapist
         row = (x / room.tile_size).to_i
         col = (y / room.tile_size).to_i
 
+        break if laser_switch_found?(row, col, room, start_point[:x], start_point[:y], distance)
         break if tile_found?(row, col, room)
 
         # no tile_objs, check room bounds
@@ -183,12 +192,36 @@ module Escapist
       end
 
       if tile_obj = tile_obj_found
-        if tile_obj != self && tile_obj.collidable?
+        if tile_obj != self && tile_obj.collidable? && !tile_obj.is_a?(LaserSwitch)
           return true
         end
       end
 
       false
+    end
+
+    def laser_switch_found?(row, col, room, x, y, distance)
+      tile_obj = nil
+
+      if room.tiles.has_key?(row) && room.tiles[row].has_key?(col)
+        tile_obj = room.tiles[row][col]
+      end
+
+      if tile_obj.is_a?(LaserSwitch)
+        if laser_switch = tile_obj.as(LaserSwitch)
+          return laser_switch_collision?(laser_switch, x, y, distance)
+        end
+      end
+
+      false
+    end
+
+    def laser_switch_collision?(laser_switch : LaserSwitch, x, y, distance)
+      radians = Math::PI * rotation_angle / 180.0
+      laser_point_x = x + Math.sin(radians) * distance
+      laser_point_y = y - Math.cos(radians) * distance
+
+      laser_switch.laser_point_collision?(laser_point_x, laser_point_y)
     end
 
     def draw_movable(window : SF::RenderWindow)
